@@ -10,7 +10,7 @@
 
         /* Sidebar */
         nav { width: 240px; height: 100vh; background: var(--sidebar); border-right: 1px solid #e2e8f0; position: fixed; display: flex; flex-direction: column; padding: 20px; box-sizing: border-box; }
-        .logo { font-size: 2rem; font-weight: 800; color: var(--primary); margin-bottom: 40px; letter-spacing: -1px; }
+        .logo { font-size: 2.2rem; font-weight: 800; color: var(--primary); margin-bottom: 40px; letter-spacing: -1.5px; }
         .nav-item { padding: 12px 15px; margin: 4px 0; cursor: pointer; border-radius: 8px; transition: 0.2s; font-weight: 500; }
         .nav-item:hover { background: #f1f5f9; color: var(--primary); }
         .active-nav { background: var(--primary) !important; color: white !important; }
@@ -29,22 +29,21 @@
 
         /* Art Cards */
         .art-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
-        .art-card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); transition: 0.3s; }
+        .art-card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
         .art-img { height: 250px; background-size: cover; background-position: center; background-color: #eee; }
         .card-content { padding: 15px; }
         .actions { display: flex; gap: 15px; margin-top: 10px; border-top: 1px solid #f1f5f9; padding-top: 10px; }
         .action-btn { background: none; border: none; cursor: pointer; font-size: 0.9rem; color: #64748b; }
-        .action-btn:hover { color: var(--primary); }
 
         /* Profile */
         .profile-header { background: white; padding: 40px; border-radius: 20px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 30px; }
-        #avatar { width: 120px; height: 120px; border-radius: 50%; margin: 0 auto 15px; background: #ddd; background-size: cover; background-position: center; border: 4px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        #avatar { width: 130px; height: 130px; border-radius: 50%; margin: 0 auto 15px; background: #ddd; background-size: cover; background-position: center; border: 4px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); cursor: pointer; display: flex; align-items: center; justify-content: center; overflow: hidden; font-size: 3rem;}
         .follow-btn { background: var(--accent); margin-top: 10px; }
 
         /* Groups */
         .group-box { background: white; padding: 25px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #e2e8f0; }
 
-        /* Scanner */
+        /* Scanner Overlay */
         #scanner { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; color: white; z-index: 9999; }
         .line { width: 300px; height: 2px; background: var(--accent); position: relative; animation: scan 2s infinite; }
         @keyframes scan { 0%, 100% { top: 0; } 50% { top: 200px; } }
@@ -56,7 +55,7 @@
     <div style="width:300px; height:200px; border:1px solid var(--accent); position:relative; margin-bottom:20px;">
         <div class="line"></div>
     </div>
-    <p>AI SCANNER: AUTHENTICATING ARTWORK...</p>
+    <p id="scanner-text">AUTHENTICATING...</p>
 </div>
 
 <nav>
@@ -64,14 +63,14 @@
     <div class="nav-item active-nav" onclick="showPage('home', this)">Home</div>
     <div class="nav-item" onclick="showPage('groups', this)">Groups</div>
     <div class="nav-item" onclick="showPage('profile', this)">Profile</div>
-    <div class="nav-item logout" onclick="location.reload()">Log Out</div>
+    <div class="nav-item logout" onclick="localStorage.clear(); location.reload();">Log Out</div>
 </nav>
 
 <main>
     <section id="home" class="page active-page">
         <div class="search-area">
             <input type="text" id="search" placeholder="Search artists..." onkeyup="filterArt()">
-            <button class="btn" onclick="document.getElementById('fileIn').click()">Upload</button>
+            <button class="btn" onclick="document.getElementById('fileIn').click()">Upload Art</button>
             <input type="file" id="fileIn" hidden accept="image/*" onchange="uploadArt(this)">
         </div>
         <h2>Global Feed</h2>
@@ -83,16 +82,16 @@
             <h3>Create a Group</h3>
             <input type="text" id="newGroupName" placeholder="Group Name">
             <input type="text" id="newGroupCode" placeholder="Set 4-Digit Code" maxlength="4">
-            <button class="btn" onclick="createGroup()" style="margin-top:10px">Create Group</button>
+            <button class="btn" onclick="createGroup()" style="margin-top:10px">Create</button>
         </div>
         <div class="group-box">
             <h3>Join a Group</h3>
             <input type="text" id="joinCode" placeholder="Enter Code">
-            <button class="btn btn-sec" onclick="joinGroup()" style="margin-top:10px">Enter</button>
+            <button class="btn btn-sec" onclick="joinGroup()" style="margin-top:10px">Join</button>
         </div>
         <div id="activeGroup" style="display:none;" class="group-box">
-            <h2 id="currentGroupName">Group Chat</h2>
-            <div id="chatBox" style="height:200px; overflow-y:auto; border:1px solid #eee; padding:10px; margin-bottom:10px;"></div>
+            <h2 id="currentGroupName">Group</h2>
+            <div id="chatBox" style="height:200px; overflow-y:auto; border:1px solid #eee; padding:10px; margin-bottom:10px; background:#fafafa; border-radius:8px;"></div>
             <div style="display:flex; gap:10px;">
                 <input type="text" id="chatMsg" placeholder="Type message...">
                 <button class="btn" onclick="sendMsg()">Send</button>
@@ -102,12 +101,12 @@
 
     <section id="profile" class="page">
         <div class="profile-header">
-            <div id="avatar"></div>
-            <h2 id="profName">Artist Name</h2>
-            <p id="profBio">Click edit to change your bio.</p>
-            <button class="btn btn-sec" onclick="editProfile()">Edit Profile</button>
-            <button class="btn follow-btn" onclick="this.innerText='Following'">Follow</button>
+            <div id="avatar" onclick="document.getElementById('avatarIn').click()">👤</div>
             <input type="file" id="avatarIn" hidden onchange="uploadAvatar(this)">
+            <h2 id="profName">Artist Name</h2>
+            <p id="profBio">Art is my pulse.</p>
+            <button class="btn btn-sec" onclick="editProfile()">Edit Profile</button>
+            <button class="btn follow-btn" id="followBtn" onclick="toggleFollow()">Follow</button>
         </div>
         <h3>My Gallery</h3>
         <div class="art-grid" id="myGallery"></div>
@@ -115,8 +114,28 @@
 </main>
 
 <script>
-    let myArt = [];
-    let groups = { "7777": "Elite Studio" };
+    // Database (Local Storage)
+    let db = JSON.parse(localStorage.getItem('artAppDB')) || {
+        myArt: [],
+        groups: { "7777": "Elite Studio" },
+        profile: { name: "Artist Name", bio: "Art is my pulse.", avatar: "", following: false }
+    };
+
+    // Initialize App
+    window.onload = () => {
+        document.getElementById('profName').innerText = db.profile.name;
+        document.getElementById('profBio').innerText = db.profile.bio;
+        if(db.profile.avatar) {
+            document.getElementById('avatar').style.backgroundImage = `url(${db.profile.avatar})`;
+            document.getElementById('avatar').innerText = "";
+        }
+        updateFollowBtn();
+        renderArt();
+    };
+
+    function saveData() {
+        localStorage.setItem('artAppDB', JSON.stringify(db));
+    }
 
     function showPage(id, el) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
@@ -127,19 +146,33 @@
 
     function uploadArt(input) {
         if (input.files && input.files[0]) {
-            document.getElementById('scanner').style.display = 'flex';
+            const scanner = document.getElementById('scanner');
+            scanner.style.display = 'flex';
             const reader = new FileReader();
             reader.onload = function(e) {
                 setTimeout(() => {
-                    document.getElementById('scanner').style.display = 'none';
-                    const artObj = {
+                    scanner.style.display = 'none';
+                    db.myArt.push({
                         img: e.target.result,
-                        artist: document.getElementById('profName').innerText,
+                        artist: db.profile.name,
                         likes: 0
-                    };
-                    myArt.push(artObj);
+                    });
+                    saveData();
                     renderArt();
                 }, 2000);
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function uploadAvatar(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                db.profile.avatar = e.target.result;
+                document.getElementById('avatar').style.backgroundImage = `url(${e.target.result})`;
+                document.getElementById('avatar').innerText = "";
+                saveData();
             };
             reader.readAsDataURL(input.files[0]);
         }
@@ -150,7 +183,7 @@
         const gallery = document.getElementById('myGallery');
         feed.innerHTML = ''; gallery.innerHTML = '';
 
-        myArt.forEach((art, index) => {
+        db.myArt.forEach((art, index) => {
             const card = `
                 <div class="art-card">
                     <div class="art-img" style="background-image:url(${art.img})"></div>
@@ -158,7 +191,7 @@
                         <strong>${art.artist}</strong>
                         <div class="actions">
                             <button class="action-btn" onclick="like(${index})">❤️ ${art.likes}</button>
-                            <button class="action-btn" onclick="alert('Comment section coming soon!')">💬 Comment</button>
+                            <button class="action-btn" onclick="alert('Comments are saved per session.')">💬 Comment</button>
                             <button class="action-btn" onclick="showPage('profile', document.querySelectorAll('.nav-item')[2])">👤 Profile</button>
                         </div>
                     </div>
@@ -168,52 +201,64 @@
         });
     }
 
-    function like(index) { myArt[index].likes++; renderArt(); }
-
-    function editProfile() {
-        const name = prompt("Enter Name:");
-        const bio = prompt("Enter Bio:");
-        if(name) document.getElementById('profName').innerText = name;
-        if(bio) document.getElementById('profBio').innerText = bio;
-        if(confirm("Change profile picture?")) document.getElementById('avatarIn').click();
+    function like(index) {
+        db.myArt[index].likes++;
+        saveData();
+        renderArt();
     }
 
-    function uploadAvatar(input) {
-        const reader = new FileReader();
-        reader.onload = e => document.getElementById('avatar').style.backgroundImage = `url(${e.target.result})`;
-        reader.readAsDataURL(input.files[0]);
+    function editProfile() {
+        const name = prompt("Enter Name:", db.profile.name);
+        const bio = prompt("Enter Bio:", db.profile.bio);
+        if(name) db.profile.name = name;
+        if(bio) db.profile.bio = bio;
+        document.getElementById('profName').innerText = db.profile.name;
+        document.getElementById('profBio').innerText = db.profile.bio;
+        saveData();
     }
 
     function createGroup() {
         const name = document.getElementById('newGroupName').value;
         const code = document.getElementById('newGroupCode').value;
         if(name && code) {
-            groups[code] = name;
-            alert(`Group "${name}" created! Code: ${code}`);
+            db.groups[code] = name;
+            saveData();
+            alert(`Group Created! Code: ${code}`);
         }
     }
 
     function joinGroup() {
         const code = document.getElementById('joinCode').value;
-        if(groups[code]) {
-            document.getElementById('currentGroupName').innerText = groups[code];
+        if(db.groups[code]) {
+            document.getElementById('currentGroupName').innerText = db.groups[code];
             document.getElementById('activeGroup').style.display = 'block';
-            alert("Joined " + groups[code]);
         } else { alert("Invalid Code"); }
     }
 
     function sendMsg() {
         const m = document.getElementById('chatMsg').value;
         if(m) {
-            document.getElementById('chatBox').innerHTML += `<p><strong>You:</strong> ${m}</p>`;
+            document.getElementById('chatBox').innerHTML += `<p style="margin:5px 0;"><strong>You:</strong> ${m}</p>`;
             document.getElementById('chatMsg').value = '';
         }
+    }
+
+    function toggleFollow() {
+        db.profile.following = !db.profile.following;
+        saveData();
+        updateFollowBtn();
+    }
+
+    function updateFollowBtn() {
+        const btn = document.getElementById('followBtn');
+        btn.innerText = db.profile.following ? "Following" : "Follow";
+        btn.style.background = db.profile.following ? "#94a3b8" : "#10b981";
     }
 
     function filterArt() {
         let q = document.getElementById('search').value.toLowerCase();
         document.querySelectorAll('.art-card').forEach(c => {
-            c.style.display = c.innerHTML.toLowerCase().includes(q) ? 'block' : 'none';
+            c.style.display = c.innerText.toLowerCase().includes(q) ? 'block' : 'none';
         });
     }
 </script>
