@@ -82,30 +82,7 @@
             transition: opacity 0.2s;
         }
 
-        .upload-btn:hover { opacity: 0.9; }
-
-        /* Art Grid */
-        .art-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 25px;
-        }
-
-        .art-card {
-            background: white;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-            animation: fadeIn 0.5s ease;
-        }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .art-placeholder { height: 250px; background: #e2e8f0; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.9rem; color: #475569; padding: 10px; text-align: center; }
-        
-        .empty-state { text-align: center; color: #94a3b8; grid-column: 1 / -1; padding: 50px; border: 2px dashed #cbd5e1; border-radius: 20px; }
-
-        /* Profile Customization */
+        /* Profile Card Styling */
         .profile-card {
             background: white;
             padding: 40px;
@@ -116,12 +93,19 @@
         }
 
         #profileAvatar {
-            width: 120px;
-            height: 120px;
-            background: linear-gradient(135deg, #6366f1, #a855f7);
+            width: 150px;
+            height: 150px;
+            background: #e2e8f0;
             border-radius: 50%;
             margin: 0 auto 20px;
-            transition: 0.3s;
+            background-size: cover;
+            background-position: center;
+            border: 4px solid white;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
         }
 
         .edit-input { display: none; margin-bottom: 10px; width: 80%; }
@@ -142,8 +126,7 @@
         }
 
         .scan-line {
-            width: 300px;
-            height: 2px;
+            width: 300px; height: 2px;
             background: var(--accent);
             box-shadow: 0 0 15px var(--accent);
             position: relative;
@@ -151,6 +134,11 @@
         }
 
         @keyframes scan { 0% { top: 0; } 50% { top: 200px; } 100% { top: 0; } }
+        
+        /* Art Grid */
+        .art-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 25px; }
+        .art-card { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .art-img-preview { height: 250px; background-size: cover; background-position: center; }
     </style>
 </head>
 <body>
@@ -159,7 +147,7 @@
         <div style="width: 300px; height: 200px; border: 2px solid var(--accent); position: relative; margin-bottom: 20px;">
             <div class="scan-line"></div>
         </div>
-        <p style="letter-spacing: 2px; font-weight: bold;">AI SCANNER: VERIFYING ARTWORK...</p>
+        <p id="scan-label" style="letter-spacing: 2px; font-weight: bold;">AI SCANNER: ANALYZING IMAGE...</p>
     </div>
 
     <nav>
@@ -174,50 +162,44 @@
         <section id="home" class="page active-page">
             <div class="search-area">
                 <input type="text" id="searchBar" placeholder="Search for artists..." onkeyup="filterArt()">
-                <button class="upload-btn" onclick="triggerUpload()">+ Upload Art</button>
-                <input type="file" id="fileInput" hidden accept="image/*" onchange="runScanner(this)">
+                <button class="upload-btn" onclick="document.getElementById('artInput').click()">+ Upload Art</button>
+                <input type="file" id="artInput" hidden accept="image/*" onchange="runScanner(this, 'art')">
             </div>
             <h2>Global Showcase</h2>
             <div class="art-grid" id="mainGallery">
-                <div class="empty-state" id="emptyMsg">No art shared yet. Be the first to upload!</div>
+                <div style="text-align: center; color: #94a3b8; grid-column: 1 / -1; padding: 50px;" id="emptyMsg">No art shared yet.</div>
             </div>
         </section>
 
         <section id="groups" class="page">
-            <div id="groupEntry" class="group-lock">
+            <div id="groupEntry" style="text-align: center; padding: 60px; background: white; border-radius: 20px;">
                 <h2>Join a Private Studio</h2>
-                <p>Enter the 4-digit code to access the studio chat.</p>
-                <input type="password" id="groupCode" style="font-size: 2rem; width: 200px; text-align: center; letter-spacing: 10px; margin: 20px 0; border: 2px solid var(--primary); border-radius: 10px;" maxlength="4" placeholder="0000">
+                <input type="password" id="groupCode" style="font-size: 2rem; width: 200px; text-align: center; letter-spacing: 10px; margin: 20px 0;" maxlength="4" placeholder="0000">
                 <br>
                 <button class="upload-btn" onclick="validateGroup()">Enter Group</button>
-                <p style="font-size: 0.8rem; color: #94a3b8; margin-top: 20px;">Demo Code: 7777</p>
+                <p><small>Code: 7777</small></p>
             </div>
             <div id="groupContent" style="display: none;">
                 <h2>🎨 Elite Studio Chat</h2>
-                <div style="background: white; padding: 20px; height: 350px; border-radius: 15px; border: 1px solid #e2e8f0; display: flex; flex-direction: column;">
-                    <div style="flex-grow: 1; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px;">
-                        <p><strong>System:</strong> Secure group connection established.</p>
-                    </div>
-                    <div style="display: flex; gap: 10px; padding-top: 15px;">
-                        <input type="text" placeholder="Type a message..." style="width: 100%;">
-                        <button class="upload-btn">Send</button>
-                    </div>
+                <div style="background: white; padding: 20px; height: 350px; border-radius: 15px; border: 1px solid #e2e8f0;">
+                    <p><strong>System:</strong> Secure chat active.</p>
                 </div>
             </div>
         </section>
 
         <section id="profile" class="page">
             <div class="profile-card" id="profileCard">
-                <div id="profileAvatar"></div>
+                <div id="profileAvatar">🎨</div>
                 
-                <h2 class="profile-text" id="displayUsername">New Artist</h2>
-                <p class="profile-text" id="displayBio" style="color: #64748b;">Click edit to add your bio!</p>
+                <h2 class="profile-text" id="displayUsername">Artist Name</h2>
+                <p class="profile-text" id="displayBio" style="color: #64748b;">Art is my pulse.</p>
                 
-                <input type="text" id="editUsername" class="edit-input" placeholder="Enter Username">
-                <textarea id="editBio" class="edit-input" placeholder="Tell the world about your art..."></textarea>
-                <div class="edit-input">
-                    <p><small>Pick Avatar Color:</small></p>
-                    <input type="color" id="editColor" value="#6366f1" style="height: 40px; width: 100px; border: none; cursor: pointer;">
+                <input type="text" id="editUsername" class="edit-input" placeholder="Username">
+                <textarea id="editBio" class="edit-input" placeholder="Bio"></textarea>
+                
+                <div class="edit-input" style="margin-top: 10px;">
+                    <button class="upload-btn" style="background: #94a3b8; font-size: 0.8rem;" onclick="document.getElementById('avatarInput').click()">Change Photo</button>
+                    <input type="file" id="avatarInput" hidden accept="image/*" onchange="runScanner(this, 'avatar')">
                 </div>
 
                 <hr style="border: 0; border-top: 1px solid #f1f5f9; margin: 20px 0;">
@@ -229,7 +211,8 @@
     </main>
 
     <script>
-        // Navigation Logic
+        let currentAvatarData = null;
+
         function switchPage(pageId, element) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active-nav'));
@@ -237,74 +220,67 @@
             element.classList.add('active-nav');
         }
 
-        // Profile Customization Logic
         function toggleEditProfile() {
             document.getElementById('profileCard').classList.add('profile-active');
             document.getElementById('editBtn').style.display = 'none';
             document.getElementById('saveBtn').style.display = 'inline-block';
-            
-            // Fill inputs with current values
             document.getElementById('editUsername').value = document.getElementById('displayUsername').innerText;
             document.getElementById('editBio').value = document.getElementById('displayBio').innerText;
         }
 
         function saveProfile() {
-            const newName = document.getElementById('editUsername').value;
-            const newBio = document.getElementById('editBio').value;
-            const newColor = document.getElementById('editColor').value;
-
-            document.getElementById('displayUsername').innerText = newName || "Artist";
-            document.getElementById('displayBio').innerText = newBio || "No bio added.";
-            document.getElementById('profileAvatar').style.background = newColor;
-
+            document.getElementById('displayUsername').innerText = document.getElementById('editUsername').value;
+            document.getElementById('displayBio').innerText = document.getElementById('editBio').value;
             document.getElementById('profileCard').classList.remove('profile-active');
             document.getElementById('editBtn').style.display = 'inline-block';
             document.getElementById('saveBtn').style.display = 'none';
         }
 
-        // Search Logic
-        function filterArt() {
-            let query = document.getElementById('searchBar').value.toLowerCase();
-            let cards = document.querySelectorAll('.art-card');
-            cards.forEach(card => {
-                let artist = card.getAttribute('data-artist').toLowerCase();
-                card.style.display = artist.includes(query) ? "block" : "none";
-            });
-        }
-
-        // Group Logic
-        function validateGroup() {
-            const code = document.getElementById('groupCode').value;
-            if(code === "7777") {
-                document.getElementById('groupEntry').style.display = 'none';
-                document.getElementById('groupContent').style.display = 'block';
-            } else {
-                alert("Access Denied!");
-            }
-        }
-
-        // Scanner Logic
-        function triggerUpload() { document.getElementById('fileInput').click(); }
-
-        function runScanner(input) {
+        function runScanner(input, type) {
             if (input.files && input.files[0]) {
                 const overlay = document.getElementById('scanner-overlay');
                 overlay.style.display = 'flex';
-                setTimeout(() => {
-                    overlay.style.display = 'none';
-                    document.getElementById('emptyMsg').style.display = 'none';
-                    const gallery = document.getElementById('mainGallery');
-                    const newArt = document.createElement('div');
-                    newArt.className = 'art-card';
-                    newArt.setAttribute('data-artist', document.getElementById('displayUsername').innerText);
-                    newArt.innerHTML = `<div class="art-placeholder" style="background: #f1f5f9; border: 2px solid var(--primary);">
-                        <span style="font-size: 2rem;">🎨</span><br>
-                        <strong>By ${document.getElementById('displayUsername').innerText}</strong><br>
-                        <small>${input.files[0].name}</small>
-                    </div>`;
-                    gallery.prepend(newArt);
-                }, 3000);
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    setTimeout(() => {
+                        overlay.style.display = 'none';
+                        if (type === 'avatar') {
+                            document.getElementById('profileAvatar').style.backgroundImage = `url(${e.target.result})`;
+                            document.getElementById('profileAvatar').innerHTML = "";
+                            alert("Avatar Verified!");
+                        } else {
+                            document.getElementById('emptyMsg').style.display = 'none';
+                            const gallery = document.getElementById('mainGallery');
+                            const card = document.createElement('div');
+                            card.className = 'art-card';
+                            card.setAttribute('data-artist', document.getElementById('displayUsername').innerText);
+                            card.innerHTML = `
+                                <div class="art-img-preview" style="background-image: url(${e.target.result})"></div>
+                                <div style="padding: 15px;">
+                                    <strong>${document.getElementById('displayUsername').innerText}</strong><br>
+                                    <small style="color:var(--accent)">Verified Original Art</small>
+                                </div>`;
+                            gallery.prepend(card);
+                        }
+                    }, 2500);
+                };
+                reader.readAsDataURL(input.files[0]);
             }
+        }
+
+        function validateGroup() {
+            if(document.getElementById('groupCode').value === "7777") {
+                document.getElementById('groupEntry').style.display = 'none';
+                document.getElementById('groupContent').style.display = 'block';
+            } else { alert("Wrong Code!"); }
+        }
+
+        function filterArt() {
+            let q = document.getElementById('searchBar').value.toLowerCase();
+            document.querySelectorAll('.art-card').forEach(c => {
+                c.style.display = c.getAttribute('data-artist').toLowerCase().includes(q) ? "block" : "none";
+            });
         }
     </script>
 </body>
