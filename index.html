@@ -11,7 +11,7 @@
         /* AUTH OVERLAY */
         #auth-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 10000; display: flex; align-items: center; justify-content: center; }
         .auth-card { background: white; padding: 40px; border-radius: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); width: 100%; max-width: 380px; text-align: center; }
-        .auth-input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; }
+        .auth-input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; font-family: inherit; }
 
         /* Navigation */
         nav { width: 240px; height: 100vh; background: var(--sidebar); border-right: 1px solid #e2e8f0; position: fixed; display: flex; flex-direction: column; padding: 20px; box-sizing: border-box; }
@@ -25,21 +25,24 @@
         .page { display: none; max-width: 1000px; margin: 0 auto; }
         .active-page { display: block; }
 
+        /* Profile Styles */
+        .profile-container { background: white; padding: 40px; border-radius: 20px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        #pfp { width: 130px; height: 130px; background: #e2e8f0; border-radius: 50%; margin: 0 auto 20px; background-size: cover; background-position: center; display: flex; align-items: center; justify-content: center; font-size: 3rem; cursor: pointer; border: 4px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .edit-mode .view-item { display: none; }
+        .edit-mode .edit-item { display: block; }
+        .edit-item { display: none; margin: 10px auto; width: 80%; }
+
         /* Art Cards */
         .art-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; }
         .art-card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 20px;}
-        .art-img { height: 260px; background-size: cover; background-position: center; background-color: #f1f5f9; }
+        .art-img { height: 260px; background-size: cover; background-position: center; }
         .card-content { padding: 15px; }
         .comment-section { padding: 10px 15px; border-top: 1px solid #f1f5f9; background: #fafafa; font-size: 0.85rem; max-height: 120px; overflow-y: auto; }
 
         /* Buttons */
-        .btn { background: var(--primary); color: white; padding: 10px 20px; border-radius: 30px; border: none; cursor: pointer; font-weight: 600; }
-        .action-btn { background: none; border: none; cursor: pointer; color: #64748b; font-size: 0.9rem; margin-right: 10px; }
-
-        /* Scanner */
-        #scanner { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; color: white; z-index: 9999; }
-        .line { width: 300px; height: 2px; background: var(--accent); position: relative; animation: scan 2s infinite; }
-        @keyframes scan { 0%, 100% { top: 0; } 50% { top: 200px; } }
+        .btn { background: var(--primary); color: white; padding: 10px 20px; border-radius: 30px; border: none; cursor: pointer; font-weight: 600; transition: 0.2s; }
+        .btn:hover { opacity: 0.9; }
+        .btn-save { background: var(--accent); }
     </style>
 </head>
 <body>
@@ -49,13 +52,8 @@
         <h1>Art</h1>
         <input type="text" id="auth-user" class="auth-input" placeholder="Username">
         <input type="password" id="auth-pass" class="auth-input" placeholder="Password">
-        <button class="btn" style="width:100%" onclick="auth()">Enter Art Hub</button>
+        <button class="btn" style="width:100%" onclick="auth()">Enter Hub</button>
     </div>
-</div>
-
-<div id="scanner">
-    <div style="width:300px; height:200px; border:1px solid var(--accent); position:relative; margin-bottom:20px;"><div class="line"></div></div>
-    <p>AI SCANNER: VERIFYING BRUSH STROKES...</p>
 </div>
 
 <nav>
@@ -69,7 +67,7 @@
 <main>
     <section id="home" class="page active-page">
         <div style="display:flex; gap:10px; margin-bottom:30px;">
-            <input type="text" id="search" placeholder="Search artists..." style="flex-grow:1; padding:12px; border-radius:12px; border:1px solid #ddd;">
+            <input type="text" id="search" placeholder="Search artists..." class="auth-input" onkeyup="render()">
             <button class="btn" onclick="document.getElementById('artIn').click()">+ Upload</button>
             <input type="file" id="artIn" hidden accept="image/*" onchange="uploadArt(this)">
         </div>
@@ -78,29 +76,34 @@
 
     <section id="groups" class="page">
         <div style="background:white; padding:30px; border-radius:20px; border:1px solid #e2e8f0; margin-bottom:20px;">
-            <h3>Join or Create a Studio</h3>
-            <p><small>Type a name to <b>Create</b>, or just enter a code to <b>Join</b>.</small></p>
-            <input type="text" id="gName" placeholder="New Studio Name (optional)" class="auth-input">
-            <input type="text" id="gCode" placeholder="4-Digit Code" maxlength="4" class="auth-input">
-            <button class="btn" onclick="joinOrCreateGroup()">Enter Studio</button>
+            <h3>Studios</h3>
+            <input type="text" id="gName" placeholder="New Studio Name" class="auth-input">
+            <input type="text" id="gCode" placeholder="Enter 4-Digit Code" maxlength="4" class="auth-input">
+            <button class="btn" onclick="joinOrCreateGroup()">Join / Create</button>
         </div>
         <div id="group-area" style="display:none; background:white; padding:25px; border-radius:15px; border:1px solid #e2e8f0;">
             <h2 id="active-g-name">Studio</h2>
-            <div id="chat" style="height:300px; overflow-y:auto; border:1px solid #f1f5f9; padding:15px; margin-bottom:15px; background:#fcfcfc; border-radius:10px;"></div>
+            <div id="chat" style="height:300px; overflow-y:auto; border:1px solid #f1f5f9; padding:15px; margin-bottom:15px; background:#fcfcfc;"></div>
             <div style="display:flex; gap:10px;">
-                <input type="text" id="chat-msg" placeholder="Share a message..." style="flex-grow:1; padding:10px; border-radius:10px; border:1px solid #ddd;">
+                <input type="text" id="chat-msg" placeholder="Message..." class="auth-input">
                 <button class="btn" onclick="sendMsg()">Send</button>
             </div>
         </div>
     </section>
 
     <section id="profile" class="page">
-        <div style="background:white; padding:40px; border-radius:20px; text-align:center; box-shadow:0 4px 6px rgba(0,0,0,0.05);">
-            <div id="pfp" style="width:130px; height:130px; background:#e2e8f0; border-radius:50%; margin:0 auto 20px; background-size:cover; background-position:center; display:flex; align-items:center; justify-content:center; font-size:3rem; cursor:pointer;" onclick="document.getElementById('pfpIn').click()">👤</div>
+        <div class="profile-container" id="prof-box">
+            <div id="pfp" onclick="document.getElementById('pfpIn').click()">👤</div>
             <input type="file" id="pfpIn" hidden onchange="updatePfp(this)">
-            <h2 id="p-user">Artist</h2>
-            <p id="p-bio" style="color:#64748b;">Art is life.</p>
-            <button class="btn" style="background:#f1f5f9; color:#1e293b;" onclick="editProf()">Edit Profile</button>
+            
+            <h2 class="view-item" id="p-user">Artist</h2>
+            <p class="view-item" id="p-bio">Bio loading...</p>
+            
+            <input type="text" id="edit-name-in" class="edit-item auth-input" placeholder="Display Name">
+            <textarea id="edit-bio-in" class="edit-item auth-input" placeholder="About you..."></textarea>
+            
+            <button class="btn view-item" onclick="toggleEdit(true)">Edit Profile</button>
+            <button class="btn btn-save edit-item" onclick="saveProfileChanges()">Save Changes</button>
         </div>
         <h3 style="margin-top:40px;">My Showcase</h3>
         <div class="art-grid" id="my-gal"></div>
@@ -120,10 +123,10 @@
     };
 
     function auth() {
-        const u = document.getElementById('auth-user').value;
-        const p = document.getElementById('auth-pass').value;
+        const u = document.getElementById('auth-user').value.trim();
+        const p = document.getElementById('auth-pass').value.trim();
         if(!u || !p) return alert("Enter credentials");
-        if(!db.users[u]) db.users[u] = { pass:p, bio: "Digital Artist", avatar: "" };
+        if(!db.users[u]) db.users[u] = { pass:p, bio: "Digital Artist", avatar: "", name: u };
         else if(db.users[u].pass !== p) return alert("Wrong password");
         user = u; localStorage.setItem('art_user', u);
         document.getElementById('auth-overlay').style.display='none';
@@ -131,22 +134,32 @@
     }
 
     function loadProf() {
-        if(!db.users[user]) return;
-        document.getElementById('p-user').innerText = user;
-        document.getElementById('p-bio').innerText = db.users[user].bio;
-        if(db.users[user].avatar) {
-            document.getElementById('pfp').style.backgroundImage = `url(${db.users[user].avatar})`;
+        const uData = db.users[user];
+        document.getElementById('p-user').innerText = uData.name || user;
+        document.getElementById('p-bio').innerText = uData.bio;
+        if(uData.avatar) {
+            document.getElementById('pfp').style.backgroundImage = `url(${uData.avatar})`;
             document.getElementById('pfp').innerText = "";
         }
     }
 
-    function editProf() {
-        const newBio = prompt("Write a new bio:", db.users[user].bio);
-        if(newBio !== null) {
-            db.users[user].bio = newBio;
-            save();
-            loadProf();
+    function toggleEdit(isEditing) {
+        const box = document.getElementById('prof-box');
+        if(isEditing) {
+            box.classList.add('edit-mode');
+            document.getElementById('edit-name-in').value = db.users[user].name || user;
+            document.getElementById('edit-bio-in').value = db.users[user].bio;
+        } else {
+            box.classList.remove('edit-mode');
         }
+    }
+
+    function saveProfileChanges() {
+        db.users[user].name = document.getElementById('edit-name-in').value;
+        db.users[user].bio = document.getElementById('edit-bio-in').value;
+        save();
+        loadProf();
+        toggleEdit(false);
     }
 
     function updatePfp(input) {
@@ -162,14 +175,10 @@
 
     function uploadArt(input) {
         if (input.files && input.files[0]) {
-            document.getElementById('scanner').style.display='flex';
             const reader = new FileReader();
             reader.onload = e => {
-                setTimeout(() => {
-                    document.getElementById('scanner').style.display='none';
-                    db.art.push({ img: e.target.result, author: user, likes: 0, comments: [] });
-                    save(); render();
-                }, 2000);
+                db.art.push({ img: e.target.result, author: user, authorName: db.users[user].name || user, likes: 0, comments: [] });
+                save(); render();
             };
             reader.readAsDataURL(input.files[0]);
         }
@@ -178,56 +187,49 @@
     function render() {
         const feed = document.getElementById('feed');
         const gal = document.getElementById('my-gal');
+        const query = document.getElementById('search').value.toLowerCase();
         feed.innerHTML = ''; gal.innerHTML = '';
+        
         db.art.forEach((a, i) => {
-            const commentsHtml = a.comments.map(c => `<div style="margin-bottom:5px;"><b>${c.u}:</b> ${c.m}</div>`).join('');
-            const card = `
-                <div class="art-card">
+            if (a.authorName.toLowerCase().includes(query)) {
+                const commentsHtml = a.comments.map(c => `<div><b>${c.u}:</b> ${c.m}</div>`).join('');
+                const card = `<div class="art-card">
                     <div class="art-img" style="background-image:url(${a.img})"></div>
                     <div class="card-content">
-                        <strong>@${a.author}</strong>
+                        <strong>@${a.authorName || a.author}</strong>
                         <div style="margin-top:10px;">
                             <button class="action-btn" onclick="like(${i})">❤️ ${a.likes}</button>
-                            <button class="action-btn" onclick="showPage('profile', this)">👤 Profile</button>
                         </div>
                     </div>
-                    <div class="comment-section" id="comments-${i}">${commentsHtml || 'No comments yet...'}</div>
+                    <div class="comment-section">${commentsHtml || 'No comments...'}</div>
                     <div style="display:flex; padding:10px; border-top:1px solid #eee;">
                         <input type="text" id="in-${i}" placeholder="Comment..." style="flex-grow:1; border:none; outline:none;">
                         <button class="action-btn" style="color:var(--primary)" onclick="addComment(${i})">Post</button>
                     </div>
                 </div>`;
-            feed.innerHTML += card;
-            if(a.author === user) gal.innerHTML += card;
+                feed.innerHTML += card;
+                if(a.author === user) gal.innerHTML += card;
+            }
         });
     }
 
     function addComment(i) {
         const msg = document.getElementById(`in-${i}`).value;
         if(!msg) return;
-        db.art[i].comments.push({ u: user, m: msg });
+        db.art[i].comments.push({ u: db.users[user].name || user, m: msg });
         save(); render();
     }
 
     function joinOrCreateGroup() {
-        const code = document.getElementById('gCode').value;
-        const name = document.getElementById('gName').value;
-        if(!code) return alert("Enter a 4-digit code");
-        
-        // Create if it doesn't exist and name is provided
-        if(!db.groups[code] && name) {
-            db.groups[code] = { name: name, msgs: [] };
-            save();
-        }
-
-        // Join if it exists
+        const code = document.getElementById('gCode').value.trim();
+        const name = document.getElementById('gName').value.trim();
+        if(!code) return alert("Enter a code");
+        if(!db.groups[code] && name) db.groups[code] = { name: name, msgs: [] };
         if(db.groups[code]) {
             document.getElementById('active-g-name').innerText = db.groups[code].name;
             document.getElementById('group-area').style.display = 'block';
             renderChat(code);
-        } else {
-            alert("Studio code not found. Type a name to create it!");
-        }
+        } else { alert("Code not found. Enter a name to create it!"); }
     }
 
     function renderChat(code) {
@@ -237,10 +239,10 @@
     }
 
     function sendMsg() {
-        const code = document.getElementById('gCode').value;
+        const code = document.getElementById('gCode').value.trim();
         const msg = document.getElementById('chat-msg').value;
-        if(!msg || !code) return;
-        db.groups[code].msgs.push({ u: user, m: msg });
+        if(!msg) return;
+        db.groups[code].msgs.push({ u: db.users[user].name || user, m: msg });
         document.getElementById('chat-msg').value = '';
         save(); renderChat(code);
     }
@@ -252,7 +254,7 @@
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active-nav'));
         document.getElementById(id).classList.add('active-page');
-        if(el.tagName === "DIV") el.classList.add('active-nav');
+        el.classList.add('active-nav');
     }
 </script>
 </body>
