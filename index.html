@@ -25,13 +25,12 @@
         .page { display: none; max-width: 1000px; margin: 0 auto; }
         .active-page { display: block; }
 
-        /* Art Cards & Comments */
+        /* Art Cards */
         .art-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; }
-        .art-card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .art-card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 20px;}
         .art-img { height: 260px; background-size: cover; background-position: center; background-color: #f1f5f9; }
         .card-content { padding: 15px; }
-        .comment-section { padding: 10px 15px; border-top: 1px solid #f1f5f9; background: #fafafa; font-size: 0.85rem; max-height: 150px; overflow-y: auto; }
-        .comment-input-area { display: flex; gap: 5px; padding: 10px; border-top: 1px solid #eee; }
+        .comment-section { padding: 10px 15px; border-top: 1px solid #f1f5f9; background: #fafafa; font-size: 0.85rem; max-height: 120px; overflow-y: auto; }
 
         /* Buttons */
         .btn { background: var(--primary); color: white; padding: 10px 20px; border-radius: 30px; border: none; cursor: pointer; font-weight: 600; }
@@ -47,16 +46,16 @@
 
 <div id="auth-overlay">
     <div class="auth-card">
-        <h1 id="auth-title">Art</h1>
+        <h1>Art</h1>
         <input type="text" id="auth-user" class="auth-input" placeholder="Username">
         <input type="password" id="auth-pass" class="auth-input" placeholder="Password">
-        <button class="btn" style="width:100%" onclick="auth()">Sign In / Up</button>
+        <button class="btn" style="width:100%" onclick="auth()">Enter Art Hub</button>
     </div>
 </div>
 
 <div id="scanner">
     <div style="width:300px; height:200px; border:1px solid var(--accent); position:relative; margin-bottom:20px;"><div class="line"></div></div>
-    <p>AI SCANNER: ANALYZING ARTWORK...</p>
+    <p>AI SCANNER: VERIFYING BRUSH STROKES...</p>
 </div>
 
 <nav>
@@ -64,31 +63,32 @@
     <div class="nav-item active-nav" onclick="showPage('home', this)">Home</div>
     <div class="nav-item" onclick="showPage('groups', this)">Groups</div>
     <div class="nav-item" onclick="showPage('profile', this)">Profile</div>
-    <div class="nav-item" style="color:red; margin-top:auto;" onclick="logout()">Log Out</div>
+    <div class="nav-item" style="color:#ef4444; margin-top:auto;" onclick="logout()">Log Out</div>
 </nav>
 
 <main>
     <section id="home" class="page active-page">
         <div style="display:flex; gap:10px; margin-bottom:30px;">
-            <input type="text" id="search" placeholder="Search artists..." style="flex-grow:1; padding:10px; border-radius:10px; border:1px solid #ddd;">
-            <button class="btn" onclick="document.getElementById('artIn').click()">Upload</button>
+            <input type="text" id="search" placeholder="Search artists..." style="flex-grow:1; padding:12px; border-radius:12px; border:1px solid #ddd;">
+            <button class="btn" onclick="document.getElementById('artIn').click()">+ Upload</button>
             <input type="file" id="artIn" hidden accept="image/*" onchange="uploadArt(this)">
         </div>
         <div class="art-grid" id="feed"></div>
     </section>
 
     <section id="groups" class="page">
-        <div style="background:white; padding:20px; border-radius:15px; border:1px solid #e2e8f0; margin-bottom:20px;">
-            <h3>Join or Create Studio</h3>
-            <input type="text" id="gName" placeholder="Group Name (if creating)">
-            <input type="text" id="gCode" placeholder="4-Digit Code" maxlength="4" style="margin:10px 0; display:block;">
+        <div style="background:white; padding:30px; border-radius:20px; border:1px solid #e2e8f0; margin-bottom:20px;">
+            <h3>Join or Create a Studio</h3>
+            <p><small>Type a name to <b>Create</b>, or just enter a code to <b>Join</b>.</small></p>
+            <input type="text" id="gName" placeholder="New Studio Name (optional)" class="auth-input">
+            <input type="text" id="gCode" placeholder="4-Digit Code" maxlength="4" class="auth-input">
             <button class="btn" onclick="joinOrCreateGroup()">Enter Studio</button>
         </div>
-        <div id="group-area" style="display:none; background:white; padding:20px; border-radius:15px; border:1px solid #e2e8f0;">
+        <div id="group-area" style="display:none; background:white; padding:25px; border-radius:15px; border:1px solid #e2e8f0;">
             <h2 id="active-g-name">Studio</h2>
-            <div id="chat" style="height:250px; overflow-y:auto; border:1px solid #f1f5f9; padding:15px; margin-bottom:10px; background:#fcfcfc;"></div>
+            <div id="chat" style="height:300px; overflow-y:auto; border:1px solid #f1f5f9; padding:15px; margin-bottom:15px; background:#fcfcfc; border-radius:10px;"></div>
             <div style="display:flex; gap:10px;">
-                <input type="text" id="chat-msg" placeholder="Write to the studio..." style="flex-grow:1;">
+                <input type="text" id="chat-msg" placeholder="Share a message..." style="flex-grow:1; padding:10px; border-radius:10px; border:1px solid #ddd;">
                 <button class="btn" onclick="sendMsg()">Send</button>
             </div>
         </div>
@@ -96,12 +96,13 @@
 
     <section id="profile" class="page">
         <div style="background:white; padding:40px; border-radius:20px; text-align:center; box-shadow:0 4px 6px rgba(0,0,0,0.05);">
-            <div id="pfp" style="width:120px; height:120px; background:#ddd; border-radius:50%; margin:0 auto 15px; background-size:cover;"></div>
+            <div id="pfp" style="width:130px; height:130px; background:#e2e8f0; border-radius:50%; margin:0 auto 20px; background-size:cover; background-position:center; display:flex; align-items:center; justify-content:center; font-size:3rem; cursor:pointer;" onclick="document.getElementById('pfpIn').click()">👤</div>
+            <input type="file" id="pfpIn" hidden onchange="updatePfp(this)">
             <h2 id="p-user">Artist</h2>
-            <p id="p-bio">Bio loading...</p>
-            <button class="btn" style="background:#e2e8f0; color:#1e293b;" onclick="editProf()">Edit</button>
+            <p id="p-bio" style="color:#64748b;">Art is life.</p>
+            <button class="btn" style="background:#f1f5f9; color:#1e293b;" onclick="editProf()">Edit Profile</button>
         </div>
-        <h3 style="margin-top:30px;">Portfolio</h3>
+        <h3 style="margin-top:40px;">My Showcase</h3>
         <div class="art-grid" id="my-gal"></div>
     </section>
 </main>
@@ -111,24 +112,52 @@
     let db = JSON.parse(localStorage.getItem('art_db')) || { users: {}, art: [], groups: {} };
 
     window.onload = () => {
-        if(user) { document.getElementById('auth-overlay').style.display='none'; loadProf(); }
+        if(user) { 
+            document.getElementById('auth-overlay').style.display='none'; 
+            loadProf(); 
+        }
         render();
     };
 
     function auth() {
         const u = document.getElementById('auth-user').value;
         const p = document.getElementById('auth-pass').value;
-        if(!u || !p) return;
+        if(!u || !p) return alert("Enter credentials");
         if(!db.users[u]) db.users[u] = { pass:p, bio: "Digital Artist", avatar: "" };
-        else if(db.users[u].pass !== p) return alert("Wrong pass");
+        else if(db.users[u].pass !== p) return alert("Wrong password");
         user = u; localStorage.setItem('art_user', u);
         document.getElementById('auth-overlay').style.display='none';
         loadProf(); save();
     }
 
     function loadProf() {
+        if(!db.users[user]) return;
         document.getElementById('p-user').innerText = user;
         document.getElementById('p-bio').innerText = db.users[user].bio;
+        if(db.users[user].avatar) {
+            document.getElementById('pfp').style.backgroundImage = `url(${db.users[user].avatar})`;
+            document.getElementById('pfp').innerText = "";
+        }
+    }
+
+    function editProf() {
+        const newBio = prompt("Write a new bio:", db.users[user].bio);
+        if(newBio !== null) {
+            db.users[user].bio = newBio;
+            save();
+            loadProf();
+        }
+    }
+
+    function updatePfp(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                db.users[user].avatar = e.target.result;
+                save(); loadProf();
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
     }
 
     function uploadArt(input) {
@@ -149,22 +178,22 @@
     function render() {
         const feed = document.getElementById('feed');
         const gal = document.getElementById('my-gal');
-        feed.innerHTML = gal.innerHTML = '';
+        feed.innerHTML = ''; gal.innerHTML = '';
         db.art.forEach((a, i) => {
-            const commentsHtml = a.comments.map(c => `<div><strong>${c.u}:</strong> ${c.m}</div>`).join('');
+            const commentsHtml = a.comments.map(c => `<div style="margin-bottom:5px;"><b>${c.u}:</b> ${c.m}</div>`).join('');
             const card = `
                 <div class="art-card">
                     <div class="art-img" style="background-image:url(${a.img})"></div>
                     <div class="card-content">
                         <strong>@${a.author}</strong>
-                        <div>
+                        <div style="margin-top:10px;">
                             <button class="action-btn" onclick="like(${i})">❤️ ${a.likes}</button>
-                            <button class="action-btn">👤 Profile</button>
+                            <button class="action-btn" onclick="showPage('profile', this)">👤 Profile</button>
                         </div>
                     </div>
                     <div class="comment-section" id="comments-${i}">${commentsHtml || 'No comments yet...'}</div>
-                    <div class="comment-input-area">
-                        <input type="text" id="in-${i}" placeholder="Add a comment..." style="width:100%; border:none; outline:none; background:transparent;">
+                    <div style="display:flex; padding:10px; border-top:1px solid #eee;">
+                        <input type="text" id="in-${i}" placeholder="Comment..." style="flex-grow:1; border:none; outline:none;">
                         <button class="action-btn" style="color:var(--primary)" onclick="addComment(${i})">Post</button>
                     </div>
                 </div>`;
@@ -183,13 +212,22 @@
     function joinOrCreateGroup() {
         const code = document.getElementById('gCode').value;
         const name = document.getElementById('gName').value;
-        if(!code) return alert("Enter a code");
-        if(!db.groups[code] && name) db.groups[code] = { name: name, msgs: [] };
+        if(!code) return alert("Enter a 4-digit code");
+        
+        // Create if it doesn't exist and name is provided
+        if(!db.groups[code] && name) {
+            db.groups[code] = { name: name, msgs: [] };
+            save();
+        }
+
+        // Join if it exists
         if(db.groups[code]) {
             document.getElementById('active-g-name').innerText = db.groups[code].name;
             document.getElementById('group-area').style.display = 'block';
             renderChat(code);
-        } else { alert("Group not found. Enter a name to create it."); }
+        } else {
+            alert("Studio code not found. Type a name to create it!");
+        }
     }
 
     function renderChat(code) {
@@ -201,7 +239,7 @@
     function sendMsg() {
         const code = document.getElementById('gCode').value;
         const msg = document.getElementById('chat-msg').value;
-        if(!msg) return;
+        if(!msg || !code) return;
         db.groups[code].msgs.push({ u: user, m: msg });
         document.getElementById('chat-msg').value = '';
         save(); renderChat(code);
@@ -214,11 +252,7 @@
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active-nav'));
         document.getElementById(id).classList.add('active-page');
-        el.classList.add('active-nav');
-    }
-    function editProf() {
-        const b = prompt("Bio:", db.users[user].bio);
-        if(b) { db.users[user].bio = b; save(); loadProf(); }
+        if(el.tagName === "DIV") el.classList.add('active-nav');
     }
 </script>
 </body>
