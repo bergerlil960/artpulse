@@ -3,48 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Art | Share Your World</title>
+    <title>Art | Community & Creation</title>
     <style>
         :root { --primary: #6366f1; --bg: #f8fafc; --sidebar: #ffffff; --text: #1e293b; --accent: #10b981; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; background: var(--bg); color: var(--text); overflow-x: hidden; }
 
-        /* AUTHENTICATION OVERLAY */
-        #auth-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--bg); z-index: 10000; display: flex; align-items: center; justify-content: center;
-        }
-        .auth-card {
-            background: white; padding: 40px; border-radius: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
-            width: 100%; max-width: 380px; text-align: center;
-        }
-        .auth-card h1 { color: var(--primary); margin-bottom: 5px; font-size: 2.5rem; letter-spacing: -2px;}
-        .auth-input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; outline: none;}
-        .auth-toggle { font-size: 0.9rem; color: var(--primary); cursor: pointer; text-decoration: underline; margin-top: 15px; display: block; }
+        /* AUTH OVERLAY */
+        #auth-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 10000; display: flex; align-items: center; justify-content: center; }
+        .auth-card { background: white; padding: 40px; border-radius: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); width: 100%; max-width: 380px; text-align: center; }
+        .auth-input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; }
 
-        /* Sidebar */
+        /* Navigation */
         nav { width: 240px; height: 100vh; background: var(--sidebar); border-right: 1px solid #e2e8f0; position: fixed; display: flex; flex-direction: column; padding: 20px; box-sizing: border-box; }
         .logo { font-size: 2.2rem; font-weight: 800; color: var(--primary); margin-bottom: 40px; letter-spacing: -1.5px; }
         .nav-item { padding: 12px 15px; margin: 4px 0; cursor: pointer; border-radius: 8px; transition: 0.2s; font-weight: 500; }
         .nav-item:hover { background: #f1f5f9; color: var(--primary); }
         .active-nav { background: var(--primary) !important; color: white !important; }
-        .logout { margin-top: auto; color: #ef4444; border: 1px solid #fee2e2; text-align: center; cursor: pointer; padding: 10px; border-radius: 8px;}
 
-        /* Content */
+        /* Main Content */
         main { margin-left: 240px; padding: 40px; width: calc(100% - 240px); box-sizing: border-box; }
         .page { display: none; max-width: 1000px; margin: 0 auto; }
         .active-page { display: block; }
 
-        /* UI Elements */
-        .btn { background: var(--primary); color: white; padding: 12px 20px; border-radius: 30px; border: none; cursor: pointer; font-weight: 600; width: 100%; margin-top: 10px;}
-        .art-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
+        /* Art Cards & Comments */
+        .art-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; }
         .art-card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-        .art-img { height: 260px; background-size: cover; background-position: center; background-color: #f1f5f9;}
+        .art-img { height: 260px; background-size: cover; background-position: center; background-color: #f1f5f9; }
         .card-content { padding: 15px; }
-        .action-btns { display: flex; gap: 15px; margin-top: 10px; }
-        .like-btn { background: none; border: none; cursor: pointer; color: #64748b; font-weight: 600; }
-        
-        #avatar { width: 130px; height: 130px; border-radius: 50%; margin: 0 auto 15px; background: #e2e8f0; background-size: cover; background-position: center; cursor: pointer; border: 4px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; font-size: 3rem;}
-        
+        .comment-section { padding: 10px 15px; border-top: 1px solid #f1f5f9; background: #fafafa; font-size: 0.85rem; max-height: 150px; overflow-y: auto; }
+        .comment-input-area { display: flex; gap: 5px; padding: 10px; border-top: 1px solid #eee; }
+
+        /* Buttons */
+        .btn { background: var(--primary); color: white; padding: 10px 20px; border-radius: 30px; border: none; cursor: pointer; font-weight: 600; }
+        .action-btn { background: none; border: none; cursor: pointer; color: #64748b; font-size: 0.9rem; margin-right: 10px; }
+
+        /* Scanner */
         #scanner { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; color: white; z-index: 9999; }
         .line { width: 300px; height: 2px; background: var(--accent); position: relative; animation: scan 2s infinite; }
         @keyframes scan { 0%, 100% { top: 0; } 50% { top: 200px; } }
@@ -54,20 +47,16 @@
 
 <div id="auth-overlay">
     <div class="auth-card">
-        <h1 id="auth-title">Sign Up</h1>
-        <p id="auth-sub">Join the Art community today.</p>
+        <h1 id="auth-title">Art</h1>
         <input type="text" id="auth-user" class="auth-input" placeholder="Username">
         <input type="password" id="auth-pass" class="auth-input" placeholder="Password">
-        <button class="btn" id="auth-btn" onclick="processAuth()">Create Account</button>
-        <span class="auth-toggle" onclick="toggleAuthMode()" id="auth-toggle-text">Already have an account? Sign In</span>
+        <button class="btn" style="width:100%" onclick="auth()">Sign In / Up</button>
     </div>
 </div>
 
 <div id="scanner">
-    <div style="width:300px; height:200px; border:1px solid var(--accent); position:relative; margin-bottom:20px;">
-        <div class="line"></div>
-    </div>
-    <p>AI SCANNER: VERIFYING ORIGINAL ART...</p>
+    <div style="width:300px; height:200px; border:1px solid var(--accent); position:relative; margin-bottom:20px;"><div class="line"></div></div>
+    <p>AI SCANNER: ANALYZING ARTWORK...</p>
 </div>
 
 <nav>
@@ -75,174 +64,161 @@
     <div class="nav-item active-nav" onclick="showPage('home', this)">Home</div>
     <div class="nav-item" onclick="showPage('groups', this)">Groups</div>
     <div class="nav-item" onclick="showPage('profile', this)">Profile</div>
-    <div class="logout" onclick="userLogout()">Log Out</div>
+    <div class="nav-item" style="color:red; margin-top:auto;" onclick="logout()">Log Out</div>
 </nav>
 
 <main>
     <section id="home" class="page active-page">
-        <div style="display:flex; gap:10px; margin-bottom:40px;">
-            <input type="text" id="search" placeholder="Search for artists..." onkeyup="filterArt()">
-            <button class="btn" style="width:auto;" onclick="document.getElementById('artIn').click()">Upload Art</button>
-            <input type="file" id="artIn" hidden accept="image/*" onchange="verifyAndUpload(this)">
+        <div style="display:flex; gap:10px; margin-bottom:30px;">
+            <input type="text" id="search" placeholder="Search artists..." style="flex-grow:1; padding:10px; border-radius:10px; border:1px solid #ddd;">
+            <button class="btn" onclick="document.getElementById('artIn').click()">Upload</button>
+            <input type="file" id="artIn" hidden accept="image/*" onchange="uploadArt(this)">
         </div>
-        <h2>Discover</h2>
-        <div class="art-grid" id="main-feed"></div>
+        <div class="art-grid" id="feed"></div>
     </section>
 
     <section id="groups" class="page">
-        <div style="background:white; padding:25px; border-radius:15px; border:1px solid #e2e8f0; margin-bottom:20px;">
-            <h3>Start a Group</h3>
-            <input type="text" id="gn" placeholder="Group Name">
-            <input type="text" id="gc" placeholder="4-Digit Code" maxlength="4">
-            <button class="btn" onclick="makeGroup()">Create Group</button>
+        <div style="background:white; padding:20px; border-radius:15px; border:1px solid #e2e8f0; margin-bottom:20px;">
+            <h3>Join or Create Studio</h3>
+            <input type="text" id="gName" placeholder="Group Name (if creating)">
+            <input type="text" id="gCode" placeholder="4-Digit Code" maxlength="4" style="margin:10px 0; display:block;">
+            <button class="btn" onclick="joinOrCreateGroup()">Enter Studio</button>
         </div>
-        <div id="open-chat" style="display:none; background:white; padding:25px; border-radius:15px; border:1px solid #e2e8f0;">
-            <h2 id="chat-title">Group Name</h2>
-            <div id="msg-box" style="height:200px; overflow-y:auto; border:1px solid #f1f5f9; padding:10px; margin-bottom:15px;"></div>
+        <div id="group-area" style="display:none; background:white; padding:20px; border-radius:15px; border:1px solid #e2e8f0;">
+            <h2 id="active-g-name">Studio</h2>
+            <div id="chat" style="height:250px; overflow-y:auto; border:1px solid #f1f5f9; padding:15px; margin-bottom:10px; background:#fcfcfc;"></div>
             <div style="display:flex; gap:10px;">
-                <input type="text" id="msg-in" placeholder="Message...">
-                <button class="btn" style="width:auto;" onclick="pushMsg()">Send</button>
+                <input type="text" id="chat-msg" placeholder="Write to the studio..." style="flex-grow:1;">
+                <button class="btn" onclick="sendMsg()">Send</button>
             </div>
         </div>
     </section>
 
     <section id="profile" class="page">
-        <div style="background:white; padding:40px; border-radius:20px; text-align:center; box-shadow:0 4px 6px rgba(0,0,0,0.05); margin-bottom:30px;">
-            <div id="avatar" onclick="document.getElementById('pfpIn').click()">👤</div>
-            <input type="file" id="pfpIn" hidden onchange="updatePfp(this)">
-            <h2 id="p-name">Username</h2>
-            <p id="p-bio">Digital Artist</p>
-            <button class="btn" style="width:auto; background:#e2e8f0; color:#1e293b;" onclick="editProfile()">Edit Profile</button>
+        <div style="background:white; padding:40px; border-radius:20px; text-align:center; box-shadow:0 4px 6px rgba(0,0,0,0.05);">
+            <div id="pfp" style="width:120px; height:120px; background:#ddd; border-radius:50%; margin:0 auto 15px; background-size:cover;"></div>
+            <h2 id="p-user">Artist</h2>
+            <p id="p-bio">Bio loading...</p>
+            <button class="btn" style="background:#e2e8f0; color:#1e293b;" onclick="editProf()">Edit</button>
         </div>
-        <h3>My Gallery</h3>
-        <div class="art-grid" id="user-gallery"></div>
+        <h3 style="margin-top:30px;">Portfolio</h3>
+        <div class="art-grid" id="my-gal"></div>
     </section>
 </main>
 
 <script>
-    let isSignUp = true;
-    let currentUser = localStorage.getItem('art_user');
-    let db = JSON.parse(localStorage.getItem('art_data')) || { users: {}, art: [], groups: {} };
+    let user = localStorage.getItem('art_user');
+    let db = JSON.parse(localStorage.getItem('art_db')) || { users: {}, art: [], groups: {} };
 
     window.onload = () => {
-        if(currentUser) {
-            document.getElementById('auth-overlay').style.display = 'none';
-            syncProfile();
-        }
-        renderGallery();
+        if(user) { document.getElementById('auth-overlay').style.display='none'; loadProf(); }
+        render();
     };
 
-    function toggleAuthMode() {
-        isSignUp = !isSignUp;
-        document.getElementById('auth-title').innerText = isSignUp ? "Sign Up" : "Sign In";
-        document.getElementById('auth-sub').innerText = isSignUp ? "Join the Art community today." : "Welcome back, Artist.";
-        document.getElementById('auth-btn').innerText = isSignUp ? "Create Account" : "Sign In";
-        document.getElementById('auth-toggle-text').innerText = isSignUp ? "Already have an account? Sign In" : "Don't have an account? Sign Up";
-    }
-
-    function processAuth() {
+    function auth() {
         const u = document.getElementById('auth-user').value;
         const p = document.getElementById('auth-pass').value;
-        if(!u || !p) return alert("Please fill in both fields.");
-
-        if(isSignUp) {
-            if(db.users[u]) return alert("Username taken.");
-            db.users[u] = { pass: p, bio: "Digital Artist", avatar: "" };
-            alert("Account created! Now Sign In.");
-            toggleAuthMode();
-        } else {
-            if(db.users[u] && db.users[u].pass === p) {
-                currentUser = u;
-                localStorage.setItem('art_user', u);
-                document.getElementById('auth-overlay').style.display = 'none';
-                syncProfile();
-            } else { alert("Invalid credentials."); }
-        }
-        save();
+        if(!u || !p) return;
+        if(!db.users[u]) db.users[u] = { pass:p, bio: "Digital Artist", avatar: "" };
+        else if(db.users[u].pass !== p) return alert("Wrong pass");
+        user = u; localStorage.setItem('art_user', u);
+        document.getElementById('auth-overlay').style.display='none';
+        loadProf(); save();
     }
 
-    function syncProfile() {
-        document.getElementById('p-name').innerText = currentUser;
-        document.getElementById('p-bio').innerText = db.users[currentUser].bio;
-        if(db.users[currentUser].avatar) {
-            document.getElementById('avatar').style.backgroundImage = `url(${db.users[currentUser].avatar})`;
-            document.getElementById('avatar').innerText = "";
-        }
+    function loadProf() {
+        document.getElementById('p-user').innerText = user;
+        document.getElementById('p-bio').innerText = db.users[user].bio;
     }
 
-    function verifyAndUpload(input) {
+    function uploadArt(input) {
         if (input.files && input.files[0]) {
-            document.getElementById('scanner').style.display = 'flex';
+            document.getElementById('scanner').style.display='flex';
             const reader = new FileReader();
             reader.onload = e => {
                 setTimeout(() => {
-                    document.getElementById('scanner').style.display = 'none';
-                    db.art.push({ img: e.target.result, author: currentUser, likes: 0 });
-                    save(); renderGallery();
+                    document.getElementById('scanner').style.display='none';
+                    db.art.push({ img: e.target.result, author: user, likes: 0, comments: [] });
+                    save(); render();
                 }, 2000);
             };
             reader.readAsDataURL(input.files[0]);
         }
     }
 
-    function renderGallery() {
-        const feed = document.getElementById('main-feed');
-        const gal = document.getElementById('user-gallery');
-        feed.innerHTML = ''; gal.innerHTML = '';
+    function render() {
+        const feed = document.getElementById('feed');
+        const gal = document.getElementById('my-gal');
+        feed.innerHTML = gal.innerHTML = '';
         db.art.forEach((a, i) => {
-            const html = `
+            const commentsHtml = a.comments.map(c => `<div><strong>${c.u}:</strong> ${c.m}</div>`).join('');
+            const card = `
                 <div class="art-card">
                     <div class="art-img" style="background-image:url(${a.img})"></div>
                     <div class="card-content">
                         <strong>@${a.author}</strong>
-                        <div class="action-btns">
-                            <button class="like-btn" onclick="addLike(${i})">❤️ ${a.likes}</button>
-                            <button class="like-btn" onclick="showPage('profile', document.querySelectorAll('.nav-item')[2])">👤 Profile</button>
+                        <div>
+                            <button class="action-btn" onclick="like(${i})">❤️ ${a.likes}</button>
+                            <button class="action-btn">👤 Profile</button>
                         </div>
                     </div>
+                    <div class="comment-section" id="comments-${i}">${commentsHtml || 'No comments yet...'}</div>
+                    <div class="comment-input-area">
+                        <input type="text" id="in-${i}" placeholder="Add a comment..." style="width:100%; border:none; outline:none; background:transparent;">
+                        <button class="action-btn" style="color:var(--primary)" onclick="addComment(${i})">Post</button>
+                    </div>
                 </div>`;
-            feed.innerHTML += html;
-            if(a.author === currentUser) gal.innerHTML += html;
+            feed.innerHTML += card;
+            if(a.author === user) gal.innerHTML += card;
         });
     }
 
-    function addLike(i) { db.art[i].likes++; save(); renderGallery(); }
+    function addComment(i) {
+        const msg = document.getElementById(`in-${i}`).value;
+        if(!msg) return;
+        db.art[i].comments.push({ u: user, m: msg });
+        save(); render();
+    }
 
+    function joinOrCreateGroup() {
+        const code = document.getElementById('gCode').value;
+        const name = document.getElementById('gName').value;
+        if(!code) return alert("Enter a code");
+        if(!db.groups[code] && name) db.groups[code] = { name: name, msgs: [] };
+        if(db.groups[code]) {
+            document.getElementById('active-g-name').innerText = db.groups[code].name;
+            document.getElementById('group-area').style.display = 'block';
+            renderChat(code);
+        } else { alert("Group not found. Enter a name to create it."); }
+    }
+
+    function renderChat(code) {
+        const chat = document.getElementById('chat');
+        chat.innerHTML = db.groups[code].msgs.map(m => `<p><strong>${m.u}:</strong> ${m.m}</p>`).join('');
+        chat.scrollTop = chat.scrollHeight;
+    }
+
+    function sendMsg() {
+        const code = document.getElementById('gCode').value;
+        const msg = document.getElementById('chat-msg').value;
+        if(!msg) return;
+        db.groups[code].msgs.push({ u: user, m: msg });
+        document.getElementById('chat-msg').value = '';
+        save(); renderChat(code);
+    }
+
+    function like(i) { db.art[i].likes++; save(); render(); }
+    function save() { localStorage.setItem('art_db', JSON.stringify(db)); }
+    function logout() { localStorage.removeItem('art_user'); location.reload(); }
     function showPage(id, el) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active-nav'));
         document.getElementById(id).classList.add('active-page');
         el.classList.add('active-nav');
     }
-
-    function updatePfp(input) {
-        const reader = new FileReader();
-        reader.onload = e => {
-            db.users[currentUser].avatar = e.target.result;
-            document.getElementById('avatar').style.backgroundImage = `url(${e.target.result})`;
-            document.getElementById('avatar').innerText = "";
-            save();
-        };
-        reader.readAsDataURL(input.files[0]);
-    }
-
-    function editProfile() {
-        const b = prompt("Update Bio:", db.users[currentUser].bio);
-        if(b) { db.users[currentUser].bio = b; syncProfile(); save(); }
-    }
-
-    function userLogout() {
-        localStorage.removeItem('art_user');
-        location.reload();
-    }
-
-    function save() { localStorage.setItem('art_data', JSON.stringify(db)); }
-
-    function filterArt() {
-        let q = document.getElementById('search').value.toLowerCase();
-        document.querySelectorAll('.art-card').forEach(c => {
-            c.style.display = c.innerText.toLowerCase().includes(q) ? 'block' : 'none';
-        });
+    function editProf() {
+        const b = prompt("Bio:", db.users[user].bio);
+        if(b) { db.users[user].bio = b; save(); loadProf(); }
     }
 </script>
 </body>
