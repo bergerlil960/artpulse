@@ -62,12 +62,13 @@
             margin-bottom: 40px;
         }
 
-        input[type="text"] {
+        input[type="text"], textarea {
             flex-grow: 1;
             padding: 12px 20px;
-            border-radius: 30px;
+            border-radius: 10px;
             border: 1px solid #cbd5e1;
             outline: none;
+            font-family: inherit;
         }
 
         .upload-btn {
@@ -78,7 +79,10 @@
             border: none;
             cursor: pointer;
             font-weight: 600;
+            transition: opacity 0.2s;
         }
+
+        .upload-btn:hover { opacity: 0.9; }
 
         /* Art Grid */
         .art-grid {
@@ -101,23 +105,28 @@
         
         .empty-state { text-align: center; color: #94a3b8; grid-column: 1 / -1; padding: 50px; border: 2px dashed #cbd5e1; border-radius: 20px; }
 
-        /* Groups Page */
-        .group-lock {
-            text-align: center;
-            padding: 60px;
+        /* Profile Customization */
+        .profile-card {
             background: white;
+            padding: 40px;
             border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
+            position: relative;
         }
 
-        .code-input {
-            font-size: 2rem;
-            width: 200px;
-            text-align: center;
-            letter-spacing: 10px;
-            margin: 20px 0;
-            border: 2px solid var(--primary);
-            border-radius: 10px;
+        #profileAvatar {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            transition: 0.3s;
         }
+
+        .edit-input { display: none; margin-bottom: 10px; width: 80%; }
+        .profile-active .edit-input { display: inline-block; }
+        .profile-active .profile-text { display: none; }
 
         /* Scanner Modal */
         #scanner-overlay {
@@ -150,7 +159,7 @@
         <div style="width: 300px; height: 200px; border: 2px solid var(--accent); position: relative; margin-bottom: 20px;">
             <div class="scan-line"></div>
         </div>
-        <p id="scan-status" style="letter-spacing: 2px; font-weight: bold;">AI SCANNER: VERIFYING ARTWORK...</p>
+        <p style="letter-spacing: 2px; font-weight: bold;">AI SCANNER: VERIFYING ARTWORK...</p>
     </div>
 
     <nav>
@@ -178,7 +187,7 @@
             <div id="groupEntry" class="group-lock">
                 <h2>Join a Private Studio</h2>
                 <p>Enter the 4-digit code to access the studio chat.</p>
-                <input type="password" id="groupCode" class="code-input" maxlength="4" placeholder="0000">
+                <input type="password" id="groupCode" style="font-size: 2rem; width: 200px; text-align: center; letter-spacing: 10px; margin: 20px 0; border: 2px solid var(--primary); border-radius: 10px;" maxlength="4" placeholder="0000">
                 <br>
                 <button class="upload-btn" onclick="validateGroup()">Enter Group</button>
                 <p style="font-size: 0.8rem; color: #94a3b8; margin-top: 20px;">Demo Code: 7777</p>
@@ -198,15 +207,23 @@
         </section>
 
         <section id="profile" class="page">
-            <div style="background: white; padding: 40px; border-radius: 20px; text-align: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
-                <div style="width: 100px; height: 100px; background: linear-gradient(135deg, #6366f1, #a855f7); border-radius: 50%; margin: 0 auto 20px;"></div>
-                <h2>My Portfolio</h2>
-                <p style="color: #64748b;">Digital Artist & Creative Thinker</p>
-                <hr style="border: 0; border-top: 1px solid #f1f5f9; margin: 20px 0;">
-                <div style="display: flex; justify-content: center; gap: 30px;">
-                    <div><strong>0</strong><br><small>Followers</small></div>
-                    <div><strong>0</strong><br><small>Posts</small></div>
+            <div class="profile-card" id="profileCard">
+                <div id="profileAvatar"></div>
+                
+                <h2 class="profile-text" id="displayUsername">New Artist</h2>
+                <p class="profile-text" id="displayBio" style="color: #64748b;">Click edit to add your bio!</p>
+                
+                <input type="text" id="editUsername" class="edit-input" placeholder="Enter Username">
+                <textarea id="editBio" class="edit-input" placeholder="Tell the world about your art..."></textarea>
+                <div class="edit-input">
+                    <p><small>Pick Avatar Color:</small></p>
+                    <input type="color" id="editColor" value="#6366f1" style="height: 40px; width: 100px; border: none; cursor: pointer;">
                 </div>
+
+                <hr style="border: 0; border-top: 1px solid #f1f5f9; margin: 20px 0;">
+                
+                <button id="editBtn" class="upload-btn" onclick="toggleEditProfile()">Edit Profile</button>
+                <button id="saveBtn" class="upload-btn" style="display: none; background: var(--accent);" onclick="saveProfile()">Save Changes</button>
             </div>
         </section>
     </main>
@@ -216,17 +233,33 @@
         function switchPage(pageId, element) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active-nav'));
-            
-            const targetPage = document.getElementById(pageId);
-            targetPage.classList.add('active-page');
+            document.getElementById(pageId).classList.add('active-page');
             element.classList.add('active-nav');
+        }
 
-            // Hide the actual group content if we leave the groups page
-            if(pageId !== 'groups') {
-                document.getElementById('groupContent').style.display = 'none';
-                document.getElementById('groupEntry').style.display = 'block';
-                document.getElementById('groupCode').value = '';
-            }
+        // Profile Customization Logic
+        function toggleEditProfile() {
+            document.getElementById('profileCard').classList.add('profile-active');
+            document.getElementById('editBtn').style.display = 'none';
+            document.getElementById('saveBtn').style.display = 'inline-block';
+            
+            // Fill inputs with current values
+            document.getElementById('editUsername').value = document.getElementById('displayUsername').innerText;
+            document.getElementById('editBio').value = document.getElementById('displayBio').innerText;
+        }
+
+        function saveProfile() {
+            const newName = document.getElementById('editUsername').value;
+            const newBio = document.getElementById('editBio').value;
+            const newColor = document.getElementById('editColor').value;
+
+            document.getElementById('displayUsername').innerText = newName || "Artist";
+            document.getElementById('displayBio').innerText = newBio || "No bio added.";
+            document.getElementById('profileAvatar').style.background = newColor;
+
+            document.getElementById('profileCard').classList.remove('profile-active');
+            document.getElementById('editBtn').style.display = 'inline-block';
+            document.getElementById('saveBtn').style.display = 'none';
         }
 
         // Search Logic
@@ -246,43 +279,30 @@
                 document.getElementById('groupEntry').style.display = 'none';
                 document.getElementById('groupContent').style.display = 'block';
             } else {
-                alert("Access Denied! Check the code.");
+                alert("Access Denied!");
             }
         }
 
         // Scanner Logic
-        function triggerUpload() {
-            document.getElementById('fileInput').click();
-        }
+        function triggerUpload() { document.getElementById('fileInput').click(); }
 
         function runScanner(input) {
             if (input.files && input.files[0]) {
                 const overlay = document.getElementById('scanner-overlay');
                 overlay.style.display = 'flex';
-                
-                // Simulate AI scan time
                 setTimeout(() => {
                     overlay.style.display = 'none';
                     document.getElementById('emptyMsg').style.display = 'none';
-                    
-                    const fileName = input.files[0].name;
                     const gallery = document.getElementById('mainGallery');
                     const newArt = document.createElement('div');
                     newArt.className = 'art-card';
-                    newArt.setAttribute('data-artist', 'Me');
-                    
-                    // Creates a nice preview box with the file name
-                    newArt.innerHTML = `
-                        <div class="art-placeholder" style="background: #f1f5f9; border: 2px solid #6366f1;">
-                            <span style="font-size: 2rem; margin-bottom: 10px;">🎨</span>
-                            <strong>Uploaded Artwork</strong>
-                            <small>${fileName}</small>
-                            <span style="margin-top: 10px; color: var(--accent); font-weight: bold;">Verified Drawing</span>
-                        </div>
-                    `;
+                    newArt.setAttribute('data-artist', document.getElementById('displayUsername').innerText);
+                    newArt.innerHTML = `<div class="art-placeholder" style="background: #f1f5f9; border: 2px solid var(--primary);">
+                        <span style="font-size: 2rem;">🎨</span><br>
+                        <strong>By ${document.getElementById('displayUsername').innerText}</strong><br>
+                        <small>${input.files[0].name}</small>
+                    </div>`;
                     gallery.prepend(newArt);
-                    
-                    alert("Scan Complete: Brush strokes detected. Welcome to ArtPulse!");
                 }, 3000);
             }
         }
