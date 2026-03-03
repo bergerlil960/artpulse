@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CanvasShare | Global Art Hub</title>
+    <title>ArtPulse | Global Art Hub</title>
     <style>
         :root {
             --primary: #6366f1;
@@ -92,9 +92,14 @@
             border-radius: 15px;
             overflow: hidden;
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            animation: fadeIn 0.5s ease;
         }
 
-        .art-placeholder { height: 200px; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: #64748b; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .art-placeholder { height: 250px; background: #e2e8f0; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.9rem; color: #475569; padding: 10px; text-align: center; }
+        
+        .empty-state { text-align: center; color: #94a3b8; grid-column: 1 / -1; padding: 50px; border: 2px dashed #cbd5e1; border-radius: 20px; }
 
         /* Groups Page */
         .group-lock {
@@ -110,13 +115,15 @@
             text-align: center;
             letter-spacing: 10px;
             margin: 20px 0;
+            border: 2px solid var(--primary);
+            border-radius: 10px;
         }
 
         /* Scanner Modal */
         #scanner-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.9);
             display: none;
             flex-direction: column;
             align-items: center;
@@ -134,24 +141,20 @@
             animation: scan 2s infinite;
         }
 
-        @keyframes scan {
-            0% { top: 0; }
-            50% { top: 200px; }
-            100% { top: 0; }
-        }
+        @keyframes scan { 0% { top: 0; } 50% { top: 200px; } 100% { top: 0; } }
     </style>
 </head>
 <body>
 
     <div id="scanner-overlay">
-        <div style="width: 300px; height: 200px; border: 2px solid var(--accent); position: relative;">
+        <div style="width: 300px; height: 200px; border: 2px solid var(--accent); position: relative; margin-bottom: 20px;">
             <div class="scan-line"></div>
         </div>
-        <p id="scan-status">AI SCANNER: ANALYZING BRUSH STROKES...</p>
+        <p id="scan-status" style="letter-spacing: 2px; font-weight: bold;">AI SCANNER: VERIFYING ARTWORK...</p>
     </div>
 
     <nav>
-        <div class="logo">CanvasShare</div>
+        <div class="logo">ArtPulse</div>
         <div class="nav-item active-nav" onclick="switchPage('home', this)">Home</div>
         <div class="nav-item" onclick="switchPage('groups', this)">Groups</div>
         <div class="nav-item" onclick="switchPage('profile', this)">Profile</div>
@@ -161,38 +164,49 @@
     <main>
         <section id="home" class="page active-page">
             <div class="search-area">
-                <input type="text" id="searchBar" placeholder="Search artists (e.g. Picasso, PixelMaster)..." onkeyup="filterArt()">
-                <button class="upload-btn" onclick="triggerUpload()">Upload Work</button>
-                <input type="file" id="fileInput" hidden onchange="runScanner(this)">
+                <input type="text" id="searchBar" placeholder="Search for artists..." onkeyup="filterArt()">
+                <button class="upload-btn" onclick="triggerUpload()">+ Upload Art</button>
+                <input type="file" id="fileInput" hidden accept="image/*" onchange="runScanner(this)">
             </div>
             <h2>Global Showcase</h2>
             <div class="art-grid" id="mainGallery">
-                <div class="art-card" data-artist="daVinci"><div class="art-placeholder">Sketch by daVinci</div></div>
-                <div class="art-card" data-artist="PixelJoe"><div class="art-placeholder">Pixel Art by PixelJoe</div></div>
+                <div class="empty-state" id="emptyMsg">No art shared yet. Be the first to upload!</div>
             </div>
         </section>
 
         <section id="groups" class="page">
             <div id="groupEntry" class="group-lock">
                 <h2>Join a Private Studio</h2>
-                <p>Enter the 4-digit code to access the group chat.</p>
+                <p>Enter the 4-digit code to access the studio chat.</p>
                 <input type="password" id="groupCode" class="code-input" maxlength="4" placeholder="0000">
                 <br>
                 <button class="upload-btn" onclick="validateGroup()">Enter Group</button>
+                <p style="font-size: 0.8rem; color: #94a3b8; margin-top: 20px;">Demo Code: 7777</p>
             </div>
-            <div id="groupContent" class="page">
-                <h2>🎨 Elite Painters Chat</h2>
-                <div style="background: white; padding: 20px; height: 300px; border-radius: 10px; border: 1px solid #ddd;">
-                    <p><strong>System:</strong> You have joined the group.</p>
+            <div id="groupContent" style="display: none;">
+                <h2>🎨 Elite Studio Chat</h2>
+                <div style="background: white; padding: 20px; height: 350px; border-radius: 15px; border: 1px solid #e2e8f0; display: flex; flex-direction: column;">
+                    <div style="flex-grow: 1; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px;">
+                        <p><strong>System:</strong> Secure group connection established.</p>
+                    </div>
+                    <div style="display: flex; gap: 10px; padding-top: 15px;">
+                        <input type="text" placeholder="Type a message..." style="width: 100%;">
+                        <button class="upload-btn">Send</button>
+                    </div>
                 </div>
             </div>
         </section>
 
         <section id="profile" class="page">
-            <div style="background: white; padding: 40px; border-radius: 20px; text-align: center;">
-                <div style="width: 100px; height: 100px; background: #ddd; border-radius: 50%; margin: 0 auto 20px;"></div>
+            <div style="background: white; padding: 40px; border-radius: 20px; text-align: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+                <div style="width: 100px; height: 100px; background: linear-gradient(135deg, #6366f1, #a855f7); border-radius: 50%; margin: 0 auto 20px;"></div>
                 <h2>My Portfolio</h2>
-                <p>Artist Bio: I love digital painting and pixel art.</p>
+                <p style="color: #64748b;">Digital Artist & Creative Thinker</p>
+                <hr style="border: 0; border-top: 1px solid #f1f5f9; margin: 20px 0;">
+                <div style="display: flex; justify-content: center; gap: 30px;">
+                    <div><strong>0</strong><br><small>Followers</small></div>
+                    <div><strong>0</strong><br><small>Posts</small></div>
+                </div>
             </div>
         </section>
     </main>
@@ -203,8 +217,16 @@
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active-nav'));
             
-            document.getElementById(pageId).classList.add('active-page');
+            const targetPage = document.getElementById(pageId);
+            targetPage.classList.add('active-page');
             element.classList.add('active-nav');
+
+            // Hide the actual group content if we leave the groups page
+            if(pageId !== 'groups') {
+                document.getElementById('groupContent').style.display = 'none';
+                document.getElementById('groupEntry').style.display = 'block';
+                document.getElementById('groupCode').value = '';
+            }
         }
 
         // Search Logic
@@ -220,11 +242,11 @@
         // Group Logic
         function validateGroup() {
             const code = document.getElementById('groupCode').value;
-            if(code === "7777") { // Secret code for demo
+            if(code === "7777") {
                 document.getElementById('groupEntry').style.display = 'none';
                 document.getElementById('groupContent').style.display = 'block';
             } else {
-                alert("Incorrect Code! Try 7777");
+                alert("Access Denied! Check the code.");
             }
         }
 
@@ -238,17 +260,29 @@
                 const overlay = document.getElementById('scanner-overlay');
                 overlay.style.display = 'flex';
                 
+                // Simulate AI scan time
                 setTimeout(() => {
                     overlay.style.display = 'none';
-                    alert("SUCCESS: AI confirmed this is an original Drawing/Painting. Artwork uploaded!");
+                    document.getElementById('emptyMsg').style.display = 'none';
                     
-                    // Add new "Art" to gallery
+                    const fileName = input.files[0].name;
                     const gallery = document.getElementById('mainGallery');
                     const newArt = document.createElement('div');
                     newArt.className = 'art-card';
                     newArt.setAttribute('data-artist', 'Me');
-                    newArt.innerHTML = `<div class="art-placeholder" style="background: #c7d2fe">New Drawing by Me</div>`;
+                    
+                    // Creates a nice preview box with the file name
+                    newArt.innerHTML = `
+                        <div class="art-placeholder" style="background: #f1f5f9; border: 2px solid #6366f1;">
+                            <span style="font-size: 2rem; margin-bottom: 10px;">🎨</span>
+                            <strong>Uploaded Artwork</strong>
+                            <small>${fileName}</small>
+                            <span style="margin-top: 10px; color: var(--accent); font-weight: bold;">Verified Drawing</span>
+                        </div>
+                    `;
                     gallery.prepend(newArt);
+                    
+                    alert("Scan Complete: Brush strokes detected. Welcome to ArtPulse!");
                 }, 3000);
             }
         }
