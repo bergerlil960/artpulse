@@ -1,105 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Art Hub | Community Gallery</title>
-    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
-    <style>
-        :root { --primary: #6366f1; --bg: #f8fafc; --card: #ffffff; --text: #1e293b; }
-        
-        * { box-sizing: border-box; transition: all 0.2s ease; }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; background: var(--bg); color: var(--text); overflow-x: hidden; }
-
-        /* --- RESPONSIVE NAVIGATION --- */
-        nav { 
-            width: 100%; height: 60px; background: white; border-bottom: 1px solid #e2e8f0;
-            position: fixed; top: 0; display: flex; justify-content: space-around; align-items: center; z-index: 1000;
-        }
-        @media (min-width: 768px) {
-            nav { width: 240px; height: 100vh; flex-direction: column; justify-content: flex-start; border-right: 1px solid #e2e8f0; padding-top: 40px; }
-            main { margin-left: 240px; }
-        }
-
-        .nav-item { cursor: pointer; padding: 10px 20px; border-radius: 12px; font-weight: 600; font-size: 0.9rem; }
-        .active { background: var(--primary); color: white; }
-
-        /* --- MAIN CONTENT --- */
-        main { padding: 80px 20px 20px; width: 100%; }
-        .page { display: none; max-width: 1200px; margin: 0 auto; }
-        .active-page { display: block; }
-
-        /* --- COMMUNITY GALLERY GRID --- */
-        .gallery { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
-            gap: 20px; margin-top: 20px; 
-        }
-        @media (max-width: 480px) { .gallery { grid-template-columns: 1fr; } }
-
-        .card { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #eee; }
-        .card-img { width: 100%; aspect-ratio: 1/1; background-size: cover; background-position: center; background-color: #f1f5f9; }
-        .card-body { padding: 15px; display: flex; align-items: center; gap: 10px; }
-        .user-pfp { width: 30px; height: 30px; border-radius: 50%; background: #ddd; background-size: cover; }
-
-        /* --- ACTIONS --- */
-        .upload-zone { background: white; padding: 20px; border-radius: 20px; text-align: center; margin-bottom: 30px; border: 2px dashed #cbd5e1; }
-        .btn { background: var(--primary); color: white; border: none; padding: 12px 24px; border-radius: 30px; font-weight: 700; cursor: pointer; }
-        
-        /* --- AUTH OVERLAY --- */
-        #auth { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .auth-box { background: white; padding: 40px; border-radius: 30px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
-        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; border: 1px solid #ddd; }
-    </style>
-</head>
-<body>
-
-<div id="auth">
-    <div class="auth-box">
-        <h1>Art Hub</h1>
-        <input type="text" id="username" placeholder="Enter Username">
-        <button class="btn" style="width:100%" onclick="startApp()">Enter Community</button>
-    </div>
-</div>
-
-<nav>
-    <div class="nav-item active" id="nav-home" onclick="show('home', this)">Gallery</div>
-    <div class="nav-item" onclick="show('groups', this)">Groups</div>
-    <div class="nav-item" onclick="show('profile', this)">Profile</div>
-</nav>
-
-<main>
-    <section id="home" class="page active-page">
-        <div class="upload-zone">
-            <h3>Share with the Community</h3>
-            <button class="btn" onclick="document.getElementById('post-file').click()">Upload to Gallery</button>
-            <input type="file" id="post-file" hidden accept="image/*" onchange="uploadArt(this)">
-            <p style="font-size: 0.8rem; color: #64748b; margin-top: 10px;">Visible to everyone on Art Hub</p>
-        </div>
-        <div class="gallery" id="global-gallery"></div>
-    </section>
-
-    <section id="groups" class="page">
-        <h2>Private Studios</h2>
-        <button class="btn" onclick="createGroup()">+ Create Group</button>
-        <div class="gallery" id="group-list"></div>
-    </section>
-
-    <section id="profile" class="page">
-        <div style="text-align:center; padding:40px; background:white; border-radius:30px;">
-            <div id="my-pfp" style="width:100px; height:100px; border-radius:50%; margin:0 auto 20px; background:#eee; background-size:cover; cursor:pointer;" onclick="document.getElementById('pfp-file').click()"></div>
-            <input type="file" id="pfp-file" hidden accept="image/*" onchange="updatePfp(this)">
-            <h2 id="my-name">Artist</h2>
-            <button class="btn" style="background:#f1f5f9; color:black" onclick="editBio()">Edit Bio</button>
-        </div>
-        <h3>My Gallery</h3>
-        <div class="gallery" id="my-gallery"></div>
-    </section>
-</main>
-
-<script>
-    // --- STEP 1: FIREBASE CONFIGURATION ---
+// --- STEP 1: FIREBASE CONFIGURATION ---
     const firebaseConfig = {
         apiKey: "PASTE_HERE",
         authDomain: "PASTE_HERE",
@@ -114,16 +13,50 @@
     const db = firebase.database();
     let currentUser = "";
 
+    // --- FIXED: ACCOUNT CREATION LOGIC ---
     function startApp() {
-        currentUser = document.getElementById('username').value.trim();
-        if(!currentUser) return alert("Please enter a name");
-        document.getElementById('auth').style.display = 'none';
-        document.getElementById('my-name').innerText = currentUser;
-        syncGallery();
-        syncGroups();
+        const nameInput = document.getElementById('username').value.trim();
+        if(!nameInput) return alert("Please enter a name");
+        
+        currentUser = nameInput;
+
+        // Check if user exists, if not, create them in the cloud
+        db.ref('users/' + currentUser).once('value', (snapshot) => {
+            if (!snapshot.exists()) {
+                // CREATE NEW ACCOUNT
+                db.ref('users/' + currentUser).set({
+                    username: currentUser,
+                    bio: "New Artist",
+                    joined: Date.now()
+                }).then(() => {
+                    console.log("New account created!");
+                    proceedToApp();
+                });
+            } else {
+                // LOG IN TO EXISTING
+                console.log("Welcome back!");
+                proceedToApp();
+            }
+        });
     }
 
-    // --- STEP 2: PUBLIC GALLERY LOGIC ---
+    function proceedToApp() {
+        document.getElementById('auth').style.display = 'none';
+        document.getElementById('my-name').innerText = currentUser;
+        
+        // Load the public data
+        syncGallery();
+        syncGroups();
+        
+        // Load personal profile data
+        db.ref('users/' + currentUser + '/pfp').on('value', (snap) => {
+            if(snap.val()) {
+                document.getElementById('my-pfp').style.backgroundImage = `url(${snap.val()})`;
+            }
+        });
+    }
+
+    // --- PUBLIC GALLERY LOGIC ---
     function uploadArt(input) {
         const file = input.files[0];
         if(!file) return;
@@ -134,7 +67,7 @@
             img.src = e.target.result;
             img.onload = () => {
                 const canvas = document.createElement('canvas');
-                const max = 800; // Resize for storage efficiency
+                const max = 800; 
                 let w = img.width, h = img.height;
                 if(w > h) { if(w > max){ h *= max/w; w = max; } }
                 else { if(h > max){ w *= max/h; h = max; } }
@@ -142,7 +75,6 @@
                 canvas.getContext('2d').drawImage(img, 0, 0, w, h);
                 const data = canvas.toDataURL('image/jpeg', 0.6);
 
-                // This pushes art to the Cloud Public Gallery
                 db.ref('community_gallery').push({
                     image: data,
                     author: currentUser,
@@ -154,7 +86,6 @@
     }
 
     function syncGallery() {
-        // This listens to the Cloud so everyone sees the art
         db.ref('community_gallery').on('value', (snap) => {
             const data = snap.val();
             const globalFeed = document.getElementById('global-gallery');
@@ -162,7 +93,6 @@
             globalFeed.innerHTML = personalFeed.innerHTML = "";
 
             if(data) {
-                // Reverse items so newest is always at the top
                 const items = Object.values(data).reverse();
                 items.forEach(item => {
                     const html = `
@@ -180,7 +110,6 @@
         });
     }
 
-    // --- STEP 3: GROUPS LOGIC ---
     function syncGroups() {
         db.ref('groups').on('value', (snap) => {
             const data = snap.val();
@@ -207,6 +136,3 @@
         document.getElementById(id).classList.add('active-page');
         el.classList.add('active');
     }
-</script>
-</body>
-</html>
