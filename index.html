@@ -12,13 +12,13 @@
         #auth-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 10000; display: flex; align-items: center; justify-content: center; }
         .auth-card { background: white; padding: 40px; border-radius: 24px; box-shadow: 0 20px 25px rgba(0,0,0,0.1); width: 100%; max-width: 350px; text-align: center; }
         .auth-input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; border: 1px solid #ddd; outline: none; box-sizing: border-box; }
-        .toggle-btn { color: var(--primary); cursor: pointer; text-decoration: underline; font-size: 0.9rem; display: block; margin-top: 15px; }
+        .btn { background: var(--primary); color: white; padding: 12px 20px; border-radius: 30px; border: none; cursor: pointer; font-weight: 600; width: 100%; transition: 0.2s; }
+        .btn:active { transform: scale(0.98); }
 
         /* --- NAVIGATION --- */
         nav { width: 240px; background: var(--sidebar); border-right: 1px solid #e2e8f0; position: fixed; height: 100vh; display: flex; flex-direction: column; padding: 20px; box-sizing: border-box; }
         .logo { font-size: 2.2rem; font-weight: 800; color: var(--primary); margin-bottom: 40px; }
-        .nav-item { padding: 12px 15px; margin: 5px 0; cursor: pointer; border-radius: 8px; font-weight: 500; transition: 0.2s; }
-        .nav-item:hover { background: #f1f5f9; }
+        .nav-item { padding: 12px 15px; margin: 5px 0; cursor: pointer; border-radius: 8px; font-weight: 500; }
         .active { background: var(--primary) !important; color: white !important; }
 
         /* --- CONTENT --- */
@@ -26,59 +26,58 @@
         .page { display: none; }
         .active-page { display: block; }
 
+        /* --- PROFILE PFP STYLES --- */
+        .pfp-container { position: relative; width: 120px; height: 120px; margin: 0 auto 20px; cursor: pointer; group; }
+        #pfp-display { width: 100%; height: 100%; background: #e2e8f0; border-radius: 50%; background-size: cover; background-position: center; border: 3px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; }
+        .pfp-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); border-radius: 50%; opacity: 0; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.8rem; transition: 0.3s; }
+        .pfp-container:hover .pfp-overlay { opacity: 1; }
+
         /* --- ART GRID --- */
         .art-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
         .card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .card-img { height: 250px; background-size: cover; background-position: center; background-color: #eee; }
+        .card-img { height: 250px; background-size: cover; background-position: center; }
         .card-info { padding: 15px; border-top: 1px solid #f1f5f9; }
-
-        .btn { background: var(--primary); color: white; padding: 12px 20px; border-radius: 30px; border: none; cursor: pointer; font-weight: 600; width: 100%; transition: 0.2s; }
-        .btn:active { transform: scale(0.98); }
     </style>
 </head>
 <body>
 
 <div id="auth-overlay">
     <div class="auth-card">
-        <h1 id="auth-title">Create Account</h1>
+        <h1 id="auth-title">Welcome</h1>
         <input type="text" id="user-in" class="auth-input" placeholder="Username">
         <input type="password" id="pass-in" class="auth-input" placeholder="Password">
-        <button class="btn" id="auth-btn" onclick="handleAuth()">Sign Up</button>
-        <span class="toggle-btn" id="toggle-text" onclick="toggleAuth()">Already have an account? Sign In</span>
+        <button class="btn" onclick="handleAuth()">Enter Art Hub</button>
+        <p style="font-size: 0.8rem; color: #64748b; margin-top: 15px;">New? Just enter a new name to sign up.</p>
     </div>
 </div>
 
 <nav>
     <div class="logo">Art</div>
     <div class="nav-item active" onclick="show('home', this)">Home</div>
-    <div class="nav-item" onclick="show('groups', this)">Groups</div>
     <div class="nav-item" onclick="show('profile', this)">Profile</div>
     <div class="nav-item" style="color:#ef4444; margin-top:auto" onclick="logout()">Logout</div>
 </nav>
 
 <main>
     <section id="home" class="page active-page">
-        <div style="margin-bottom:30px; display:flex; gap:10px">
-            <button class="btn" style="width:auto" onclick="document.getElementById('artFile').click()">+ Upload Artwork</button>
-            <input type="file" id="artFile" hidden accept="image/*" onchange="uploadArt(this)">
+        <div style="margin-bottom:30px;">
+            <button class="btn" style="width:auto" onclick="document.getElementById('artFile').click()">+ Upload Art</button>
+            <input type="file" id="artFile" hidden accept="image/*" onchange="handleImageUpload(this, 'post')">
         </div>
         <div class="art-grid" id="main-feed"></div>
     </section>
 
-    <section id="groups" class="page">
-        <div style="background:white; padding:25px; border-radius:15px; border:1px solid #e2e8f0;">
-            <h3>Join a Studio</h3>
-            <input type="text" id="group-code" class="auth-input" placeholder="4-Digit Code">
-            <button class="btn" onclick="alert('Studio joined!')">Join</button>
-        </div>
-    </section>
-
     <section id="profile" class="page">
         <div style="background:white; padding:40px; border-radius:20px; text-align:center; margin-bottom:30px;">
-            <div id="pfp-display" style="width:120px; height:120px; background:#e2e8f0; border-radius:50%; margin:0 auto 20px; background-size:cover; background-position:center;"></div>
+            <div class="pfp-container" onclick="document.getElementById('pfpFile').click()">
+                <div id="pfp-display">👤</div>
+                <div class="pfp-overlay">📷 Change</div>
+            </div>
+            <input type="file" id="pfpFile" hidden accept="image/*" onchange="handleImageUpload(this, 'pfp')">
+            
             <h2 id="profile-name">Artist</h2>
             <p id="profile-bio">Digital Creator</p>
-            <button class="btn" style="width:auto; background:#f1f5f9; color:#1e293b" onclick="editProfile()">Edit Profile</button>
+            <button class="btn" style="width:auto; background:#f1f5f9; color:#1e293b" onclick="editBio()">Edit Bio</button>
         </div>
         <h3>My Showcase</h3>
         <div class="art-grid" id="user-gallery"></div>
@@ -86,133 +85,96 @@
 </main>
 
 <script>
-    let isSigningUp = true;
     let currentUser = localStorage.getItem('art_active_user');
-    // The Database
     let db = JSON.parse(localStorage.getItem('art_local_db')) || { users: {}, posts: [] };
 
     window.onload = () => {
         if(currentUser) {
             document.getElementById('auth-overlay').style.display = 'none';
-            loadProfileData();
+            refreshUI();
         }
-        renderFeed();
     };
-
-    function toggleAuth() {
-        isSigningUp = !isSigningUp;
-        document.getElementById('auth-title').innerText = isSigningUp ? "Create Account" : "Welcome Back";
-        document.getElementById('auth-btn').innerText = isSigningUp ? "Sign Up" : "Sign In";
-        document.getElementById('toggle-text').innerText = isSigningUp ? "Already have an account? Sign In" : "Don't have an account? Sign Up";
-    }
 
     function handleAuth() {
         const u = document.getElementById('user-in').value.trim();
         const p = document.getElementById('pass-in').value.trim();
+        if(!u || !p) return alert("Fill fields");
 
-        if(!u || !p) return alert("Please fill in all fields.");
+        if(!db.users[u]) db.users[u] = { password: p, bio: "Digital Artist", pfp: "" };
+        else if(db.users[u].password !== p) return alert("Wrong password");
 
-        if(isSigningUp) {
-            if(db.users[u]) return alert("Username already exists!");
-            db.users[u] = { password: p, bio: "Digital Creator", name: u };
-            saveDB();
-            alert("Account created! You can now sign in.");
-            toggleAuth(); // Switch to sign-in mode
-        } else {
-            if(db.users[u] && db.users[u].password === p) {
-                currentUser = u;
-                localStorage.setItem('art_active_user', u);
-                document.getElementById('auth-overlay').style.display = 'none';
-                loadProfileData();
-                renderFeed();
-            } else {
-                alert("Invalid username or password.");
-            }
-        }
+        currentUser = u;
+        localStorage.setItem('art_active_user', u);
+        document.getElementById('auth-overlay').style.display = 'none';
+        refreshUI();
     }
 
-    function uploadArt(input) {
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                db.posts.push({
-                    img: e.target.result,
-                    author: currentUser,
-                    likes: 0,
-                    comments: []
-                });
-                saveDB();
-                renderFeed();
+    function handleImageUpload(input, type) {
+        if (!input.files || !input.files[0]) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.src = e.target.result;
+            img.onload = () => {
+                // Compress image to keep storage from filling up
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const maxSide = type === 'pfp' ? 300 : 800;
+                let w = img.width; let h = img.height;
+                if (w > h) { if (w > maxSide) { h *= maxSide / w; w = maxSide; } }
+                else { if (h > maxSide) { w *= maxSide / h; h = maxSide; } }
+                canvas.width = w; canvas.height = h;
+                ctx.drawImage(img, 0, 0, w, h);
+                const optimizedData = canvas.toDataURL('image/jpeg', 0.7);
+
+                if (type === 'pfp') {
+                    db.users[currentUser].pfp = optimizedData;
+                } else {
+                    db.posts.push({ img: optimizedData, author: currentUser, likes: 0 });
+                }
+                save();
+                refreshUI();
             };
-            reader.readAsDataURL(input.files[0]);
-        }
+        };
+        reader.readAsDataURL(input.files[0]);
     }
 
-    function renderFeed() {
+    function refreshUI() {
+        // Update Profile Tab
+        document.getElementById('profile-name').innerText = currentUser;
+        document.getElementById('profile-bio').innerText = db.users[currentUser].bio;
+        const pfpDisplay = document.getElementById('pfp-display');
+        if(db.users[currentUser].pfp) {
+            pfpDisplay.style.backgroundImage = `url(${db.users[currentUser].pfp})`;
+            pfpDisplay.innerText = "";
+        }
+
+        // Update Feed & Gallery
         const feed = document.getElementById('main-feed');
         const gal = document.getElementById('user-gallery');
-        feed.innerHTML = '';
-        gal.innerHTML = '';
+        feed.innerHTML = gal.innerHTML = '';
 
-        db.posts.forEach((post, index) => {
-            const cardHtml = `
-                <div class="card">
-                    <div class="card-img" style="background-image:url(${post.img})"></div>
-                    <div class="card-info">
-                        <strong>@${post.author}</strong>
-                        <div style="margin-top:10px; display:flex; gap:10px;">
-                            <button onclick="likePost(${index})" style="background:none; border:none; cursor:pointer;">❤️ ${post.likes}</button>
-                            <button onclick="addComment(${index})" style="background:none; border:none; cursor:pointer; color:blue;">💬 Comment</button>
-                        </div>
-                        <div id="comments-${index}" style="font-size:0.8rem; margin-top:10px; color:#64748b">
-                            ${post.comments.map(c => `<div><b>${c.u}:</b> ${c.m}</div>`).join('')}
-                        </div>
-                    </div>
+        db.posts.forEach((post, i) => {
+            const card = `<div class="card">
+                <div class="card-img" style="background-image:url(${post.img})"></div>
+                <div class="card-info">
+                    <strong>@${post.author}</strong>
+                    <button onclick="like(${i})" style="float:right; border:none; background:none; cursor:pointer;">❤️ ${post.likes}</button>
                 </div>
-            `;
-            feed.innerHTML += cardHtml;
-            if(post.author === currentUser) gal.innerHTML += cardHtml;
+            </div>`;
+            feed.innerHTML += card;
+            if(post.author === currentUser) gal.innerHTML += card;
         });
     }
 
-    function likePost(i) {
-        db.posts[i].likes++;
-        saveDB();
-        renderFeed();
+    function editBio() {
+        const b = prompt("New Bio:", db.users[currentUser].bio);
+        if(b !== null) { db.users[currentUser].bio = b; save(); refreshUI(); }
     }
 
-    function addComment(i) {
-        const msg = prompt("Enter your comment:");
-        if(msg) {
-            db.posts[i].comments.push({ u: currentUser, m: msg });
-            saveDB();
-            renderFeed();
-        }
-    }
-
-    function editProfile() {
-        const newBio = prompt("Enter new bio:", db.users[currentUser].bio);
-        if(newBio) {
-            db.users[currentUser].bio = newBio;
-            saveDB();
-            loadProfileData();
-        }
-    }
-
-    function loadProfileData() {
-        document.getElementById('profile-name').innerText = currentUser;
-        document.getElementById('profile-bio').innerText = db.users[currentUser].bio;
-    }
-
-    function saveDB() {
-        localStorage.setItem('art_local_db', JSON.stringify(db));
-    }
-
-    function logout() {
-        localStorage.removeItem('art_active_user');
-        location.reload();
-    }
-
+    function like(i) { db.posts[i].likes++; save(); refreshUI(); }
+    function save() { localStorage.setItem('art_local_db', JSON.stringify(db)); }
+    function logout() { localStorage.removeItem('art_active_user'); location.reload(); }
     function show(id, el) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active-nav'));
