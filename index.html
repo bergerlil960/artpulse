@@ -42,7 +42,7 @@
         .btn { background: var(--primary); color: white; padding: 10px 20px; border-radius: 30px; border: none; cursor: pointer; font-weight: 600; }
         .btn-save { background: var(--accent); margin-top: 15px; }
         
-        #save-status { position: fixed; bottom: 20px; right: 20px; background: #333; color: white; padding: 8px 15px; border-radius: 5px; display: none; font-size: 0.8rem; }
+        #save-status { position: fixed; bottom: 20px; right: 20px; background: #333; color: white; padding: 8px 15px; border-radius: 5px; display: none; font-size: 0.8rem; z-index: 10001; }
     </style>
 </head>
 <body>
@@ -71,7 +71,7 @@
         <div style="display:flex; gap:10px; margin-bottom:30px;">
             <input type="text" id="search" placeholder="Search artists..." class="auth-input" onkeyup="renderAll()">
             <button class="btn" onclick="document.getElementById('artUpload').click()">Upload Art</button>
-            <input type="file" id="artUpload" hidden accept="image/*" onchange="processArt(this)">
+            <input type="file" id="artUpload" hidden accept="image/*" onchange="compressAndProcess(this, 'art')">
         </div>
         <div class="art-grid" id="global-feed"></div>
     </section>
@@ -79,7 +79,7 @@
     <section id="profile" class="page">
         <div class="profile-container" id="profile-card">
             <div id="pfp" onclick="document.getElementById('pfpUpload').click()">👤</div>
-            <input type="file" id="pfpUpload" hidden onchange="processPfp(this)">
+            <input type="file" id="pfpUpload" hidden onchange="compressAndProcess(this, 'pfp')">
             
             <h2 class="view-item" id="display-name">Artist</h2>
             <p class="view-item" id="display-bio">Digital Creator</p>
@@ -120,27 +120,69 @@
         if(activeUser) {
             document.getElementById('auth-overlay').style.display = 'none';
             refreshProfileUI();
+            renderAll();
         }
-        renderAll();
     };
 
     function handleLogin() {
         const u = document.getElementById('auth-user').value.trim();
         const p = document.getElementById('auth-pass').value.trim();
         if(!u || !p) return alert("Fill fields");
-
         if(!artDB.users[u]) {
             artDB.users[u] = { pass: p, bio: "Digital Creator", pfp: "", name: u };
         } else if(artDB.users[u].pass !== p) {
             return alert("Wrong password");
         }
-
         activeUser = u;
         localStorage.setItem('art_session_user', u);
         commitToDisk();
         document.getElementById('auth-overlay').style.display = 'none';
         refreshProfileUI();
         renderAll();
+    }
+
+    // --- IMAGE COMPRESSION LOGIC ---
+    function compressAndProcess(input, type) {
+        if (!input.files || !input.files[0]) return;
+        const file = input.files[0];
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            const img = new Image();
+            img.src = e.target.result;
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                const MAX_WIDTH = 800; // Limits size to save space
+                let width = img.width;
+                let height = img.height;
+
+                if (width > MAX_WIDTH) {
+                    height *= MAX_WIDTH / width;
+                    width = MAX_WIDTH;
+                }
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                // Compress to 70% quality
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                
+                if (type === 'art') {
+                    artDB.items.push({ 
+                        src: dataUrl, 
+                        owner: activeUser, 
+                        ownerName: artDB.users[activeUser].name || activeUser,
+                        hearts: 0, talk: [] 
+                    });
+                    commitToDisk(); renderAll();
+                } else if (type === 'pfp') {
+                    artDB.users[activeUser].pfp = dataUrl;
+                    commitToDisk(); refreshProfileUI();
+                }
+            }
+        }
+        reader.readAsDataURL(file);
     }
 
     function commitToDisk() {
@@ -150,7 +192,12 @@
             status.style.display = 'block';
             setTimeout(() => status.style.display = 'none', 1000);
         } catch(e) {
-            alert("Storage full! Try uploading smaller images.");
+            console.error("Storage error:", e);
+            // If still full, remove the oldest art piece to make room
+            if (artDB.items.length > 5) {
+                artDB.items.shift();
+                commitToDisk();
+            }
         }
     }
 
@@ -178,36 +225,6 @@
         document.getElementById('profile-card').classList.remove('edit-mode');
     }
 
-    function processArt(input) {
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = e => {
-                artDB.items.push({ 
-                    src: e.target.result, 
-                    owner: activeUser, 
-                    ownerName: artDB.users[activeUser].name || activeUser,
-                    hearts: 0,
-                    talk: []
-                });
-                commitToDisk();
-                renderAll();
-            };
-            reader.readAsDataURL(input.files[0]);
-        }
-    }
-
-    function processPfp(input) {
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = e => {
-                artDB.users[activeUser].pfp = e.target.result;
-                commitToDisk();
-                refreshProfileUI();
-            };
-            reader.readAsDataURL(input.files[0]);
-        }
-    }
-
     function renderAll() {
         const feed = document.getElementById('global-feed');
         const gal = document.getElementById('user-gallery');
@@ -225,11 +242,9 @@
                         <div style="margin:10px 0">
                             <button class="btn" style="padding:5px 10px" onclick="addHeart(${idx})">❤️ ${item.hearts}</button>
                         </div>
-                        <div style="font-size:0.8rem; background:#f4f4f4; padding:8px; border-radius:8px;">
-                            ${chatHtml || 'No comments'}
-                        </div>
+                        <div style="font-size:0.8rem; background:#f4f4f4; padding:8px; border-radius:8px;">${chatHtml || 'No comments'}</div>
                         <div style="display:flex; margin-top:10px">
-                            <input type="text" id="comm-${idx}" placeholder="Talk..." style="flex:1; border:1px solid #ddd; border-radius:5px;">
+                            <input type="text" id="comm-${idx}" placeholder="Talk..." style="flex:1; border:1px solid #ddd;">
                             <button onclick="postTalk(${idx})" style="background:none; border:none; color:blue; cursor:pointer;">Post</button>
                         </div>
                     </div>
@@ -241,7 +256,6 @@
     }
 
     function addHeart(i) { artDB.items[i].hearts++; commitToDisk(); renderAll(); }
-    
     function postTalk(i) {
         const m = document.getElementById(`comm-${i}`).value;
         if(!m) return;
@@ -252,13 +266,13 @@
     function handleGroupAction() {
         const c = document.getElementById('group-code-in').value.trim();
         const n = document.getElementById('group-name-in').value.trim();
-        if(!c) return alert("Code needed");
+        if(!c) return;
         if(!artDB.clusters[c] && n) artDB.clusters[c] = { name: n, logs: [] };
         if(artDB.clusters[c]) {
             document.getElementById('studio-title').innerText = artDB.clusters[c].name;
             document.getElementById('chat-window').style.display = 'block';
             refreshChat(c);
-        } else { alert("Studio not found"); }
+        }
     }
 
     function refreshChat(c) {
@@ -277,7 +291,6 @@
     }
 
     function logout() { localStorage.removeItem('art_session_user'); location.reload(); }
-    
     function showPage(id, el) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active-nav'));
