@@ -3,41 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Art | Global Gallery</title>
+    <title>Art Hub | Global Community</title>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
     <style>
-        :root { --primary: #6366f1; --bg: #f8fafc; --sidebar: #ffffff; --text: #1e293b; }
+        :root { --primary: #6366f1; --bg: #f8fafc; --sidebar: #ffffff; --text: #1e293b; --accent: #10b981; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; background: var(--bg); color: var(--text); min-height: 100vh; }
 
-        /* --- AUTH SCREEN --- */
+        /* Navigation */
+        nav { width: 240px; background: var(--sidebar); border-right: 1px solid #e2e8f0; position: fixed; height: 100vh; display: flex; flex-direction: column; padding: 20px; box-sizing: border-box; z-index: 100; }
+        .logo { font-size: 2.2rem; font-weight: 800; color: var(--primary); margin-bottom: 40px; }
+        .nav-item { padding: 12px 15px; margin: 5px 0; cursor: pointer; border-radius: 8px; font-weight: 500; transition: 0.2s; }
+        .nav-item:hover { background: #f1f5f9; }
+        .active { background: var(--primary) !important; color: white !important; }
+
+        /* Main Content */
+        main { margin-left: 240px; padding: 40px; width: 100%; box-sizing: border-box; }
+        .page { display: none; max-width: 1200px; margin: 0 auto; }
+        .active-page { display: block; }
+
+        /* Auth System */
         #auth-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 10000; display: flex; align-items: center; justify-content: center; }
         .auth-card { background: white; padding: 40px; border-radius: 24px; box-shadow: 0 20px 25px rgba(0,0,0,0.1); width: 100%; max-width: 350px; text-align: center; }
         .auth-input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; border: 1px solid #ddd; outline: none; box-sizing: border-box; }
-        .btn { background: var(--primary); color: white; padding: 12px 20px; border-radius: 30px; border: none; cursor: pointer; font-weight: 600; width: 100%; transition: 0.2s; }
 
-        /* --- SIDEBAR NAV --- */
-        nav { width: 240px; background: var(--sidebar); border-right: 1px solid #e2e8f0; position: fixed; height: 100vh; display: flex; flex-direction: column; padding: 20px; box-sizing: border-box; }
-        .logo { font-size: 2.2rem; font-weight: 800; color: var(--primary); margin-bottom: 40px; }
-        .nav-item { padding: 12px 15px; margin: 5px 0; cursor: pointer; border-radius: 8px; font-weight: 500; }
-        .active { background: var(--primary) !important; color: white !important; }
-
-        /* --- CONTENT --- */
-        main { margin-left: 240px; padding: 40px; width: 100%; box-sizing: border-box; }
-        .page { display: none; }
-        .active-page { display: block; }
-
-        /* --- PFP DESIGN --- */
-        .pfp-container { position: relative; width: 120px; height: 120px; margin: 0 auto 20px; cursor: pointer; }
-        #pfp-display { width: 100%; height: 100%; background: #e2e8f0; border-radius: 50%; background-size: cover; background-position: center; border: 3px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; overflow: hidden; }
-        .pfp-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); border-radius: 50%; opacity: 0; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.8rem; transition: 0.3s; }
-        .pfp-container:hover .pfp-overlay { opacity: 1; }
-
-        /* --- ART GRID --- */
+        /* Art Grid */
         .art-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
-        .card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .card-img { height: 250px; background-size: cover; background-position: center; }
-        .card-info { padding: 15px; border-top: 1px solid #f1f5f9; }
+        .card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: 0.3s; }
+        .card:hover { transform: translateY(-5px); }
+        .card-img { height: 250px; background-size: cover; background-position: center; border-bottom: 1px solid #f1f5f9; }
+        .card-info { padding: 15px; }
+
+        /* Profile PFP */
+        .pfp-wrap { position: relative; width: 120px; height: 120px; margin: 0 auto 20px; cursor: pointer; }
+        #pfp-view { width: 100%; height: 100%; border-radius: 50%; background: #e2e8f0; background-size: cover; background-position: center; display: flex; align-items: center; justify-content: center; font-size: 3rem; border: 4px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        
+        /* Video Learn Page */
+        .video-container { width: 100%; aspect-ratio: 16/9; border-radius: 15px; overflow: hidden; background: #000; margin-bottom: 20px; }
+        iframe { width: 100%; height: 100%; border: none; }
+
+        /* Buttons */
+        .btn { background: var(--primary); color: white; padding: 12px 24px; border-radius: 30px; border: none; cursor: pointer; font-weight: 600; transition: 0.2s; }
+        .btn:active { transform: scale(0.95); }
     </style>
 </head>
 <body>
@@ -45,77 +52,123 @@
 <div id="auth-overlay">
     <div class="auth-card">
         <h1>Art Hub</h1>
-        <input type="text" id="user-in" class="auth-input" placeholder="Username">
-        <input type="password" id="pass-in" class="auth-input" placeholder="Password">
-        <button class="btn" onclick="handleAuth()">Sign In / Join</button>
+        <input type="text" id="u-in" class="auth-input" placeholder="Username">
+        <input type="password" id="p-in" class="auth-input" placeholder="Password">
+        <button class="btn" style="width:100%" onclick="handleAuth()">Join / Sign In</button>
+        <p style="font-size: 0.8rem; color: #64748b; margin-top: 15px;">Secure Session: Enabled</p>
     </div>
 </div>
 
 <nav>
     <div class="logo">Art</div>
-    <div class="nav-item active" onclick="show('home', this)">Home</div>
+    <div class="nav-item active" id="nav-home" onclick="show('home', this)">Home</div>
+    <div class="nav-item" onclick="show('groups', this)">Groups</div>
+    <div class="nav-item" onclick="show('learn', this)">Learn</div>
     <div class="nav-item" onclick="show('profile', this)">Profile</div>
     <div class="nav-item" style="color:#ef4444; margin-top:auto" onclick="location.reload()">Logout</div>
 </nav>
 
 <main>
     <section id="home" class="page active-page">
-        <div style="margin-bottom:30px;">
-            <button class="btn" style="width:auto" onclick="document.getElementById('artFile').click()">+ Share Artwork</button>
-            <input type="file" id="artFile" hidden accept="image/*" onchange="uploadArt(this)">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
+            <h2>Global Gallery</h2>
+            <button class="btn" onclick="document.getElementById('file-art').click()">+ Upload Art</button>
+            <input type="file" id="file-art" hidden accept="image/*" onchange="uploadArt(this)">
         </div>
         <div class="art-grid" id="global-feed"></div>
     </section>
 
-    <section id="profile" class="page">
-        <div style="background:white; padding:40px; border-radius:20px; text-align:center; margin-bottom:30px;">
-            <div class="pfp-container" onclick="document.getElementById('pfpFile').click()">
-                <div id="pfp-display">👤</div>
-                <div class="pfp-overlay">📷 Change</div>
+    <section id="groups" class="page">
+        <div style="background:white; padding:30px; border-radius:20px; box-shadow:0 4px 6px rgba(0,0,0,0.05);">
+            <h3>Studio Chat</h3>
+            <input type="text" id="g-id" class="auth-input" placeholder="Enter Group Code (e.g. 1234)" style="width:200px">
+            <button class="btn" onclick="joinGroup()">Enter Studio</button>
+            
+            <div id="chat-ui" style="display:none; margin-top:30px;">
+                <div id="chat-msgs" style="height:300px; overflow-y:auto; background:#f1f5f9; padding:20px; border-radius:12px; margin-bottom:15px;"></div>
+                <div style="display:flex; gap:10px;">
+                    <input type="text" id="msg-in" class="auth-input" placeholder="Type message...">
+                    <button class="btn" onclick="sendChat()">Send</button>
+                </div>
             </div>
-            <input type="file" id="pfpFile" hidden accept="image/*" onchange="uploadPfp(this)">
-            <h2 id="profile-name">Artist</h2>
-            <p id="profile-bio">Digital Creator</p>
         </div>
-        <h3>My Showcase</h3>
+    </section>
+
+    <section id="learn" class="page">
+        <h2>Learn to Draw</h2>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+            <div>
+                <div class="video-container">
+                    <iframe src="https://www.youtube.com/embed/OezMavBqfVw" allowfullscreen></iframe>
+                </div>
+                <h3>Character Design Basics</h3>
+            </div>
+            <div>
+                <div class="video-container">
+                    <iframe src="https://www.youtube.com/embed/6T_SBeZ3Dkc" allowfullscreen></iframe>
+                </div>
+                <h3>Anatomy & Sketching</h3>
+            </div>
+        </div>
+    </section>
+
+    <section id="profile" class="page">
+        <div style="background:white; padding:40px; border-radius:24px; text-align:center;">
+            <div class="pfp-wrap" onclick="document.getElementById('file-pfp').click()">
+                <div id="pfp-view">👤</div>
+                <input type="file" id="file-pfp" hidden accept="image/*" onchange="uploadPfp(this)">
+            </div>
+            <h2 id="prof-name">Artist</h2>
+            <p id="prof-bio">Digital Creator</p>
+            <button class="btn" style="background:#f1f5f9; color:black" onclick="editBio()">Edit Profile Info</button>
+        </div>
+        <h3 style="margin-top:40px;">My Artwork</h3>
         <div class="art-grid" id="user-gallery"></div>
     </section>
 </main>
 
 <script>
-    // --- STEP 1: Paste your Firebase config here to make it live for everyone ---
+    // --- STEP 1: CONFIGURATION ---
+    // You must paste your Firebase config here to make it sync between browsers!
     const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
-        databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
-        projectId: "YOUR_PROJECT_ID",
+        apiKey: "AIzaSy...",
+        databaseURL: "https://your-project-id.firebaseio.com",
+        projectId: "your-project-id",
     };
 
     firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
+    const db = firebase.database();
     let currentUser = "";
+    let activeGroup = null;
+
+    // Refresh Logic: Always start at Home
+    window.onload = () => { 
+        show('home', document.getElementById('nav-home')); 
+    };
 
     function handleAuth() {
-        const u = document.getElementById('user-in').value.trim();
-        const p = document.getElementById('pass-in').value.trim();
-        if(!u || !p) return alert("Fill all fields");
+        const u = document.getElementById('u-in').value.trim();
+        const p = document.getElementById('p-in').value.trim();
+        if(!u || !p) return alert("Enter details");
         
         currentUser = u;
         document.getElementById('auth-overlay').style.display = 'none';
-        document.getElementById('profile-name').innerText = u;
+        document.getElementById('prof-name').innerText = u;
         
-        // Start listening to the cloud database
-        listenToCloud();
+        // Start Global Listeners
+        listenGlobal();
+        listenUser();
     }
 
     function uploadArt(input) {
         if (!input.files[0]) return;
         const reader = new FileReader();
         reader.onload = (e) => {
-            // This pushes the art to the CLOUD so everyone sees it
-            database.ref('global_posts').push({
+            // Push to CLOUD - Home page will auto-update for everyone
+            db.ref('global_art').push({
                 img: e.target.result,
                 author: currentUser,
-                timestamp: Date.now()
+                ts: Date.now()
             });
         };
         reader.readAsDataURL(input.files[0]);
@@ -125,47 +178,75 @@
         if (!input.files[0]) return;
         const reader = new FileReader();
         reader.onload = (e) => {
-            // This saves your PFP to the cloud under your username
-            database.ref('users/' + currentUser).update({ pfp: e.target.result });
+            db.ref('users/' + currentUser).update({ pfp: e.target.result });
         };
         reader.readAsDataURL(input.files[0]);
     }
 
-    function listenToCloud() {
-        // Update Home Feed
-        database.ref('global_posts').on('value', (snapshot) => {
-            const data = snapshot.val();
+    function editBio() {
+        const b = prompt("Enter new bio:");
+        if(b) db.ref('users/' + currentUser).update({ bio: b });
+    }
+
+    function listenGlobal() {
+        // HOME PAGE LISTENER - Updates for every device instantly
+        db.ref('global_art').on('value', (snap) => {
+            const data = snap.val();
             const feed = document.getElementById('global-feed');
             const gallery = document.getElementById('user-gallery');
             feed.innerHTML = gallery.innerHTML = "";
             
             if (data) {
-                const posts = Object.values(data).reverse();
-                posts.forEach(post => {
-                    const card = `
+                Object.values(data).reverse().forEach(post => {
+                    const html = `
                     <div class="card">
                         <div class="card-img" style="background-image:url(${post.img})"></div>
                         <div class="card-info"><strong>@${post.author}</strong></div>
                     </div>`;
-                    feed.innerHTML += card;
-                    if(post.author === currentUser) gallery.innerHTML += card;
+                    feed.innerHTML += html;
+                    if(post.author === currentUser) gallery.innerHTML += html;
                 });
-            }
-        });
-
-        // Update PFP
-        database.ref('users/' + currentUser).on('value', (snapshot) => {
-            const data = snapshot.val();
-            if(data && data.pfp) {
-                document.getElementById('pfp-display').style.backgroundImage = `url(${data.pfp})`;
-                document.getElementById('pfp-display').innerText = "";
             }
         });
     }
 
+    function listenUser() {
+        db.ref('users/' + currentUser).on('value', (snap) => {
+            const d = snap.val();
+            if(d) {
+                if(d.pfp) {
+                    document.getElementById('pfp-view').style.backgroundImage = `url(${d.pfp})`;
+                    document.getElementById('pfp-view').innerText = "";
+                }
+                if(d.bio) document.getElementById('prof-bio').innerText = d.bio;
+            }
+        });
+    }
+
+    // --- GROUPS LOGIC ---
+    function joinGroup() {
+        activeGroup = document.getElementById('g-id').value.trim();
+        if(!activeGroup) return;
+        document.getElementById('chat-ui').style.display = 'block';
+        
+        db.ref('groups/' + activeGroup).on('value', (snap) => {
+            const msgs = snap.val();
+            const box = document.getElementById('chat-msgs');
+            box.innerHTML = msgs ? Object.values(msgs).map(m => `<div><b>${m.u}:</b> ${m.t}</div>`).join('') : "No messages yet...";
+            box.scrollTop = box.scrollHeight;
+        });
+    }
+
+    function sendChat() {
+        const t = document.getElementById('msg-in').value;
+        if(!t || !activeGroup) return;
+        db.ref('groups/' + activeGroup).push({ u: currentUser, t: t });
+        document.getElementById('msg-in').value = '';
+    }
+
     function show(id, el) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active-nav'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         document.getElementById(id).classList.add('active-page');
         el.classList.add('active');
     }
