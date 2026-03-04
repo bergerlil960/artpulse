@@ -11,28 +11,23 @@
         * { box-sizing: border-box; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; background: var(--bg); min-height: 100vh; }
 
-        /* Sidebar Navigation */
         nav { width: 240px; background: var(--sidebar); border-right: 1px solid #e2e8f0; position: fixed; height: 100vh; display: flex; flex-direction: column; padding: 20px; }
         .logo { font-size: 2rem; font-weight: 800; color: var(--primary); margin-bottom: 40px; }
         .nav-item { padding: 12px 15px; margin: 5px 0; cursor: pointer; border-radius: 8px; font-weight: 600; color: #64748b; }
         .active { background: var(--primary) !important; color: white !important; }
 
-        /* Main Content */
         main { margin-left: 240px; padding: 40px; width: 100%; }
         .page { display: none; }
         .active-page { display: block; }
 
-        /* Community Gallery Grid */
         .art-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
         .card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #eee; }
         .card-img { height: 250px; background-size: cover; background-position: center; }
         .card-info { padding: 15px; font-weight: bold; border-top: 1px solid #f1f5f9; }
 
-        /* Auth Overlay */
         #auth-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 10000; display: flex; align-items: center; justify-content: center; }
         .auth-card { background: white; padding: 40px; border-radius: 24px; box-shadow: 0 20px 25px rgba(0,0,0,0.1); width: 350px; text-align: center; }
         input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; border: 1px solid #ddd; outline: none; }
-        input:focus { border-color: var(--primary); }
         .btn { background: var(--primary); color: white; padding: 12px 24px; border-radius: 30px; border: none; cursor: pointer; font-weight: 600; margin-top: 10px; }
     </style>
 </head>
@@ -41,10 +36,10 @@
 <div id="auth-overlay">
     <div class="auth-card">
         <div class="logo">Art Hub</div>
-        <p>Type your name and password to enter</p>
+        <p>Enter name & password. <br><b>New names will create a new account automatically.</b></p>
         <input type="text" id="user-in" placeholder="Username">
         <input type="password" id="pass-in" placeholder="Password" onkeypress="if(event.key === 'Enter') startApp()">
-        <p style="font-size: 0.7rem; color: #94a3b8;">Press Enter to Enter the Community</p>
+        <p style="font-size: 0.7rem; color: #94a3b8;">Press Enter to Login/Join</p>
     </div>
 </div>
 
@@ -72,18 +67,21 @@
 </main>
 
 <script>
-    // --- 1. FIREBASE SETUP ---
+    // --- STEP 1: PASTE YOUR KEYS BELOW ---
     const firebaseConfig = {
-        apiKey: "PASTE_HERE",
-        databaseURL: "PASTE_HERE",
-        projectId: "PASTE_HERE",
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_PROJECT.firebaseapp.com",
+        databaseURL: "https://YOUR_PROJECT.firebaseio.com",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_PROJECT.appspot.com",
+        messagingSenderId: "YOUR_ID",
+        appId: "YOUR_APP_ID"
     };
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     let currentUser = "";
 
-    // --- 2. THE SECURE AUTO-ENTRY LOGIC ---
     function startApp() {
         const nameInput = document.getElementById('user-in').value.trim();
         const passInput = document.getElementById('pass-in').value.trim();
@@ -94,21 +92,21 @@
 
         db.ref('users/' + currentUser).once('value', (snapshot) => {
             if (!snapshot.exists()) {
-                // NEW ACCOUNT: Register name and password
+                // ACCOUNT CREATION: Saves to the Cloud
                 db.ref('users/' + currentUser).set({
                     username: currentUser,
                     password: passInput,
                     joined: Date.now()
                 }).then(() => {
                     enterWebsite();
-                });
+                }).catch(err => alert("Error creating account: " + err.message));
             } else {
-                // LOGIN: Check if password matches
+                // LOGIN CHECK
                 const userData = snapshot.val();
                 if(userData.password === passInput) {
                     enterWebsite();
                 } else {
-                    alert("Incorrect password for this username!");
+                    alert("Incorrect password!");
                 }
             }
         });
@@ -120,7 +118,6 @@
         listenToGallery();
     }
 
-    // --- 3. THE GLOBAL UPLOAD ---
     function uploadArt(input) {
         if (!input.files[0]) return;
         const reader = new FileReader();
@@ -134,7 +131,6 @@
         reader.readAsDataURL(input.files[0]);
     }
 
-    // --- 4. THE GLOBAL LISTENER ---
     function listenToGallery() {
         db.ref('community_gallery').on('value', (snapshot) => {
             const data = snapshot.val();
@@ -144,12 +140,7 @@
             
             if (data) {
                 Object.values(data).reverse().forEach(post => {
-                    const html = `
-                    <div class="card">
-                        <div class="card-img" style="background-image:url(${post.img})"></div>
-                        <div class="card-info">@${post.author}</div>
-                    </div>`;
-                    
+                    const html = `<div class="card"><div class="card-img" style="background-image:url(${post.img})"></div><div class="card-info">@${post.author}</div></div>`;
                     feed.innerHTML += html;
                     if(post.author === currentUser) myGal.innerHTML += html;
                 });
