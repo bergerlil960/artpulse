@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Art Hub | Community Gallery</title>
+    <title>Art Hub | Public Gallery</title>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
     <style>
@@ -22,7 +22,7 @@
         .page { display: none; }
         .active-page { display: block; }
 
-        /* Community Gallery Grid */
+        /* Public Gallery Grid */
         .art-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
         .card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #eee; }
         .card-img { height: 250px; background-size: cover; background-position: center; }
@@ -47,19 +47,18 @@
 
 <nav>
     <div class="logo">Art</div>
-    <div class="nav-item active" onclick="show('home', this)">Community Gallery</div>
+    <div class="nav-item active" onclick="show('home', this)">Public Gallery</div>
     <div class="nav-item" onclick="show('profile', this)">My Profile</div>
-    <div class="nav-item" style="margin-top:auto; color:#ef4444" onclick="location.reload()">Logout</div>
 </nav>
 
 <main>
     <section id="home" class="page active-page">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
-            <h2>Public Artwork</h2>
-            <button class="btn" onclick="document.getElementById('art-file').click()">+ Share to Community</button>
+            <h2>Community Art Feed</h2>
+            <button class="btn" onclick="document.getElementById('art-file').click()">+ Post to Public Gallery</button>
             <input type="file" id="art-file" hidden accept="image/*" onchange="uploadArt(this)">
         </div>
-        <div class="art-grid" id="global-feed"></div>
+        <div class="art-grid" id="public-feed"></div>
     </section>
 
     <section id="profile" class="page">
@@ -71,9 +70,9 @@
 <script>
     // --- 1. FIREBASE SETUP (Paste your keys here) ---
     const firebaseConfig = {
-        apiKey: "PASTE_HERE",
-        databaseURL: "PASTE_HERE",
-        projectId: "PASTE_HERE",
+        apiKey: "YOUR_API_KEY",
+        databaseURL: "YOUR_DATABASE_URL",
+        projectId: "YOUR_PROJECT_ID",
     };
 
     firebase.initializeApp(firebaseConfig);
@@ -86,17 +85,17 @@
         document.getElementById('auth-overlay').style.display = 'none';
         document.getElementById('prof-name').innerText = currentUser;
         
-        // Start listening to the cloud database
-        listenToGallery();
+        // Listen for new art globally
+        listenToPublicGallery();
     }
 
-    // --- 2. THE GLOBAL UPLOAD ---
+    // --- 2. THE PUBLIC UPLOAD ---
     function uploadArt(input) {
         if (!input.files[0]) return;
         const reader = new FileReader();
         reader.onload = (e) => {
-            // Push to the CLOUD so everyone sees it
-            db.ref('community_gallery').push({
+            // Push to the Cloud Database so everyone sees it
+            db.ref('public_gallery').push({
                 img: e.target.result,
                 author: currentUser,
                 timestamp: Date.now()
@@ -106,16 +105,15 @@
     }
 
     // --- 3. THE GLOBAL LISTENER ---
-    function listenToGallery() {
-        // This function automatically updates the screen whenever ANYONE uploads
-        db.ref('community_gallery').on('value', (snapshot) => {
+    function listenToPublicGallery() {
+        db.ref('public_gallery').on('value', (snapshot) => {
             const data = snapshot.val();
-            const feed = document.getElementById('global-feed');
+            const feed = document.getElementById('public-feed');
             const myGal = document.getElementById('my-gallery');
             feed.innerHTML = myGal.innerHTML = "";
             
             if (data) {
-                // Reverse items so newest is at the top
+                // newest art at the top
                 Object.values(data).reverse().forEach(post => {
                     const html = `
                     <div class="card">
