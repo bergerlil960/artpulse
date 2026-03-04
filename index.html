@@ -8,26 +8,31 @@
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
     <style>
         :root { --primary: #6366f1; --bg: #f8fafc; --sidebar: #ffffff; }
-        * { box-sizing: border-box; }
+        * { box-sizing: border-box; transition: 0.2s; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; background: var(--bg); min-height: 100vh; }
 
-        nav { width: 240px; background: var(--sidebar); border-right: 1px solid #e2e8f0; position: fixed; height: 100vh; display: flex; flex-direction: column; padding: 20px; }
+        /* Sidebar */
+        nav { width: 240px; background: var(--sidebar); border-right: 1px solid #e2e8f0; position: fixed; height: 100vh; display: flex; flex-direction: column; padding: 20px; z-index: 100; }
         .logo { font-size: 2rem; font-weight: 800; color: var(--primary); margin-bottom: 40px; }
         .nav-item { padding: 12px 15px; margin: 5px 0; cursor: pointer; border-radius: 8px; font-weight: 600; color: #64748b; }
         .active { background: var(--primary) !important; color: white !important; }
 
+        /* Main */
         main { margin-left: 240px; padding: 40px; width: 100%; }
         .page { display: none; }
         .active-page { display: block; }
 
+        /* Gallery */
         .art-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
         .card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #eee; }
-        .card-img { height: 250px; background-size: cover; background-position: center; }
+        .card-img { height: 250px; background-size: cover; background-position: center; background-color: #eee; }
         .card-info { padding: 15px; font-weight: bold; border-top: 1px solid #f1f5f9; }
 
+        /* Auth Overlay */
         #auth-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 10000; display: flex; align-items: center; justify-content: center; }
         .auth-card { background: white; padding: 40px; border-radius: 24px; box-shadow: 0 20px 25px rgba(0,0,0,0.1); width: 350px; text-align: center; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; border: 1px solid #ddd; outline: none; }
+        input { width: 100%; padding: 14px; margin: 10px 0; border-radius: 12px; border: 1px solid #ddd; outline: none; font-size: 1rem; }
+        input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
         .btn { background: var(--primary); color: white; padding: 12px 24px; border-radius: 30px; border: none; cursor: pointer; font-weight: 600; margin-top: 10px; }
     </style>
 </head>
@@ -36,10 +41,10 @@
 <div id="auth-overlay">
     <div class="auth-card">
         <div class="logo">Art Hub</div>
-        <p>Enter name & password. <br><b>New names will create a new account automatically.</b></p>
-        <input type="text" id="user-in" placeholder="Username">
+        <p>Enter your details to Login or Register.</p>
+        <input type="text" id="user-in" placeholder="Username" autocomplete="off">
         <input type="password" id="pass-in" placeholder="Password" onkeypress="if(event.key === 'Enter') startApp()">
-        <p style="font-size: 0.7rem; color: #94a3b8;">Press Enter to Login/Join</p>
+        <p style="font-size: 0.75rem; color: #94a3b8; margin-top: 15px;">Press <b>Enter</b> to continue</p>
     </div>
 </div>
 
@@ -54,7 +59,7 @@
     <section id="home" class="page active-page">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
             <h2>Public Artwork</h2>
-            <button class="btn" onclick="document.getElementById('art-file').click()">+ Share to Community</button>
+            <button class="btn" onclick="document.getElementById('art-file').click()">+ Share Art</button>
             <input type="file" id="art-file" hidden accept="image/*" onchange="uploadArt(this)">
         </div>
         <div class="art-grid" id="global-feed"></div>
@@ -67,48 +72,63 @@
 </main>
 
 <script>
-    // --- STEP 1: PASTE YOUR KEYS BELOW ---
+    // --- 1. FIREBASE CONFIG (Paste your keys from Firebase Console here) ---
     const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
-        authDomain: "YOUR_PROJECT.firebaseapp.com",
-        databaseURL: "https://YOUR_PROJECT.firebaseio.com",
-        projectId: "YOUR_PROJECT_ID",
-        storageBucket: "YOUR_PROJECT.appspot.com",
-        messagingSenderId: "YOUR_ID",
-        appId: "YOUR_APP_ID"
+        apiKey: "PASTE_HERE",
+        authDomain: "PASTE_HERE",
+        databaseURL: "PASTE_HERE",
+        projectId: "PASTE_HERE",
+        storageBucket: "PASTE_HERE",
+        messagingSenderId: "PASTE_HERE",
+        appId: "PASTE_HERE"
     };
 
-    firebase.initializeApp(firebaseConfig);
+    // Initialize Firebase
+    try {
+        firebase.initializeApp(firebaseConfig);
+    } catch (e) {
+        console.error("Firebase initialization failed. Check your config keys.");
+    }
+    
     const db = firebase.database();
     let currentUser = "";
 
+    // --- 2. SECURE LOGIN & ACCOUNT CREATION ---
     function startApp() {
         const nameInput = document.getElementById('user-in').value.trim();
         const passInput = document.getElementById('pass-in').value.trim();
         
-        if(!nameInput || !passInput) return alert("Please enter both Name and Password");
+        if(!nameInput || !passInput) {
+            alert("Please enter both Username and Password");
+            return;
+        }
         
         currentUser = nameInput;
 
+        // Try to find user in the database
         db.ref('users/' + currentUser).once('value', (snapshot) => {
             if (!snapshot.exists()) {
-                // ACCOUNT CREATION: Saves to the Cloud
+                // ACCOUNT CREATION: If name doesn't exist, create it
                 db.ref('users/' + currentUser).set({
                     username: currentUser,
                     password: passInput,
                     joined: Date.now()
                 }).then(() => {
                     enterWebsite();
-                }).catch(err => alert("Error creating account: " + err.message));
+                }).catch(err => {
+                    alert("Account creation failed! Check your Firebase Rules. Error: " + err.message);
+                });
             } else {
-                // LOGIN CHECK
+                // LOGIN: Check password
                 const userData = snapshot.val();
                 if(userData.password === passInput) {
                     enterWebsite();
                 } else {
-                    alert("Incorrect password!");
+                    alert("Wrong password for this username!");
                 }
             }
+        }).catch(err => {
+            alert("Connection error! Make sure your Firebase API keys are correct. Error: " + err.message);
         });
     }
 
@@ -118,6 +138,7 @@
         listenToGallery();
     }
 
+    // --- 3. PUBLIC UPLOAD ---
     function uploadArt(input) {
         if (!input.files[0]) return;
         const reader = new FileReader();
@@ -131,6 +152,7 @@
         reader.readAsDataURL(input.files[0]);
     }
 
+    // --- 4. GLOBAL SYNC ---
     function listenToGallery() {
         db.ref('community_gallery').on('value', (snapshot) => {
             const data = snapshot.val();
@@ -140,7 +162,12 @@
             
             if (data) {
                 Object.values(data).reverse().forEach(post => {
-                    const html = `<div class="card"><div class="card-img" style="background-image:url(${post.img})"></div><div class="card-info">@${post.author}</div></div>`;
+                    const html = `
+                    <div class="card">
+                        <div class="card-img" style="background-image:url(${post.img})"></div>
+                        <div class="card-info">@${post.author}</div>
+                    </div>`;
+                    
                     feed.innerHTML += html;
                     if(post.author === currentUser) myGal.innerHTML += html;
                 });
